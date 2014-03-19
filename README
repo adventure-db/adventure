@@ -1,0 +1,4 @@
+
+File organization:
+graph - typedef the graph data structures
+repl - Provides a REPL
