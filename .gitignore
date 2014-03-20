@@ -1,3 +1,6 @@
+# Ignore the tools directory
+tools
+
 # Object files
 *.o
 *.ko

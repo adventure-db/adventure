@@ -1,59 +1,99 @@
 #include "repl.h"
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "load.h"
+#include "lib/linenoise/linenoise.h"
+
+#define ANSI_COLOR_RED		"\x1b[31m"
+#define ANSI_COLOR_GREEN	"\x1b[32m"
+#define ANSI_COLOR_YELLOW	"\x1b[33m"
+#define ANSI_COLOR_BLUE		"\x1b[34m"
+#define ANSI_COLOR_MAGENTA	"\x1b[35m"
+#define ANSI_COLOR_CYAN		"\x1b[36m"
+#define ANSI_COLOR_RESET	"\x1b[0m"
+
+#define SUCCESS_COLOR		"\x1b[0;32m"
+#define ERROR_COLOR			"\x1b[0;31m"
+
 void printHello()
 {
-	printf("%42s", "ADVENTURE v0.0.1\n\n");
-	printf(
-	"         _---~~~~--__                      __--~~~~---__\n"
-	"        `\\---~~~~~~~~\\                    //~~~~~~~~---/'  \n"
-	"          \\/~~~~~~~~~\\||                  ||/~~~~~~~~~\\/ \n"
-	"                      `\\                //'\n"
-	"                        `\\            //'\n"
-	"                          ||          ||      \n"
-	"                ______--~~~~~~~~~~~~~~~~~~--______\n"
-	"           ___ // _-~                        ~-_ \\ ___\n"
-	"          `\\__)\\/~                              ~\\/(__/'\n"
-	"           _--`-___                            ___-'--_\n"
-	"         /~     `\\ ~~~~~~~~------------~~~~~~~~ /'     ~\\\n"
-	"        /|        `\\         ________         /'        |\\\n"
-	"       | `\\   ______`\\_      \\------/      _/'______   /' |\n"
-	"       |   `\\_~-_____\\ ~-________________-~ /_____-~_/'   |\n"
-	"       `.     ~-__________________________________-~     .'\n"
-	"        `.      [_______/------|~~|------\\_______]      .'\n"
-	"         `\\--___((____)(________\\/________)(____))___--/'\n"
-	"          |>>>>>>||                            ||<<<<<<|\n"
-	"          `\\<<<<</'                            `\\>>>>>/' \n\n");
-
-	printf("%60s", "Buckle your seatbelts. We're going on an adventure.\n\n");
+	printf("%s\n%s\n\n", "Never fear quarrels, but seek hazardous adventures.", "- Alexandre Dumas");
 }
+
 
 void printGoodbye()
 {
-	printf("%52s", "All great journeys must come to an end.\n");
+	printf("%s\n", "All great journeys must come to an end.");
 }
 
-void completion(const char *buf, linenoiseCompletions *lc) {
-	if (buf[0] == 's') {
+void completion(const char *buf, linenoiseCompletions *lc)
+{
+	if(buf[0] == 'l') {
+		linenoiseAddCompletion(lc, "load");
+	}
+	if(buf[0] == 's') {
 		linenoiseAddCompletion(lc, "stats");
 		linenoiseAddCompletion(lc, "status");
 	}
 }
 
+int isExitCmd(const char *line)
+{
+	return 	!strcmp(line, "q") ||
+			!strcmp(line, "quit") ||
+			!strcmp(line, "exit");
+}
+
+int execCmd(char *cmd)
+{
+	char *tok = strtok(cmd, " ");
+
+	if(!strcmp(tok, "status")) {
+		printf("%s %s\n", SUCCESS_COLOR "Connected.", SUCCESS_COLOR "Ready." ANSI_COLOR_RESET);
+	} else if(!strcmp(tok, "load")) {
+		tok = strtok(NULL, " ");
+		if(!tok) {
+			printf(ERROR_COLOR "load requires a file path" ANSI_COLOR_RESET "\n");
+			return 2;
+		} else {
+			// We have a file path
+			printf("Loading %s...\n", tok);
+			return load(tok);
+		}
+	} else if(!strcmp(tok, "gen")) {
+		printf("We should generate a graph now!\n");
+	} else {
+		return -1;
+	}
+	return 0;
+}
+
 int repl(const char *prompt)
 {
 	printHello();
-    linenoiseSetCompletionCallback(completion);
+	linenoiseSetCompletionCallback(completion);
+
+	//Test
+	//generateGraph();
 
 	char *line;
 	while( (line = linenoise(prompt)) != NULL ) {
-		if( !strncmp(line, "exit", 4) ) {
-			printGoodbye();
+		if(line[0] == '\0') {
+			continue;
+		} else if (isExitCmd(line)) {
 			break;
 		} else {
-			printf("You wrote %s\n", line);
-            linenoiseHistoryAdd(line);
+			linenoiseHistoryAdd(line);
+			if(execCmd(line) == -1) {
+				printf(ANSI_COLOR_RED "No idea what this means: " ANSI_COLOR_RESET "%s\n", line);
+			}
 		}
 		free(line);
 	}
-	return 1;
+
+	printGoodbye();
+	return 0;
 }

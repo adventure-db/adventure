@@ -1,9 +1,13 @@
 #ifndef ADV_GRAPH_H
 #define ADV_GRAPH_H
 
+typedef unsigned long ulong_t;
+typedef long long_t;
+
+/* Data structures */
 typedef struct edge_t
 {
-	long edgeId;
+	ulong_t id;
 	void *kv;
 	struct node_t *start;
 	struct node_t *end;
@@ -11,25 +15,39 @@ typedef struct edge_t
 
 typedef struct node_t
 {
-	long nodeId;
+	// Node id number (primary key)
+	ulong_t id;
+
+	// Flags (can be used by traversal algos)
+	long_t flags;
+
+	// Key/value pairs (properties)
 	void *kv;
-	struct edge_t *edge;
-	long d;
+
+	// Edges
+	struct edge_t *edges;
+
+	// Number of edges
+	ulong_t e;
+
 } node_t;
 
-/* 	Graph type
-	Contains a 'birds-eye' view of the database
-*/
 typedef struct graph_t
 {
-	/*	Array of nodes
-		Indexed by nodeId (which should be dense)
-	*/
-	struct node_t *node;
+	// Array of node pointers index by id
+	struct node_t **nodes;
 
-	/* Number of nodes */
-	long n;
+	// Size of the table
+	ulong_t size;
+
+	// Number of nodes
+	ulong_t n;
+
+	// TODO: add pool of free entries etc...
 
 } graph_t;
+
+/* Helper functions */
+void debugPrint(graph_t g);
 
 #endif	/* ADV_GRAPH_H */

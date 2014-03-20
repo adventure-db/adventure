@@ -2,7 +2,7 @@
 cc = clang
 
 # TODO: how do I make this dynamic?
-SOURCE = adv.c repl.c lib/linenoise/linenoise.c
+SOURCE = adv.c wmmap.c graph.c repl.c load.c lib/linenoise/linenoise.c lib/jsmn/jsmn.c
 OUTPUT = adv
 
 # Includes
