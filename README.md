@@ -4,16 +4,20 @@ A tiny quick in-memory graph database engine written in C
 - Algorithms
 - Query analyzer
 
-STRUCTURE
-adv - contains good ol' int main()
-graph - typedef the graph data structures
-repl - provides a REPL
-load - loads graphs from files (JSON format)
+SOURCE DIRS
+db - contains core database logic
+struct - commonly used data structures
+	list - doubly-linked list
+	darray - dynamic array
+	hashtbl - hash table (chaining)
+
+util - utility functions for debugging, etc...
+repl - code for interactive command line
 
 EXTERNAL LIBRARIES
-Current
 jsmn - tiny JSON tokenizer (MIT)
 linenoise - line editing from terminal, used for REPL (BSD)
+sds - simple dynamic string library (BSD)
 
 Future?
 check - unit testing (LGPL)

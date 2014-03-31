@@ -4,8 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "load.h"
-#include "lib/linenoise/linenoise.h"
+#include <src/load.h>
+#include <lib/linenoise/linenoise.h>
 
 #define ANSI_COLOR_RED		"\x1b[31m"
 #define ANSI_COLOR_GREEN	"\x1b[32m"
@@ -17,12 +17,11 @@
 
 #define SUCCESS_COLOR		"\x1b[0;32m"
 #define ERROR_COLOR			"\x1b[0;31m"
-
+ 
 void printHello()
 {
 	printf("%s\n%s\n\n", "Never fear quarrels, but seek hazardous adventures.", "- Alexandre Dumas");
 }
-
 
 void printGoodbye()
 {
@@ -47,12 +46,17 @@ int isExitCmd(const char *line)
 			!strcmp(line, "exit");
 }
 
-int execCmd(char *cmd)
+// TODO: add register functions to make this cleaner
+// TODO: make use of sds
+int routecmd(char *cmd)
 {
 	char *tok = strtok(cmd, " ");
 
 	if(!strcmp(tok, "status")) {
 		printf("%s %s\n", SUCCESS_COLOR "Connected.", SUCCESS_COLOR "Ready." ANSI_COLOR_RESET);
+	} else if(!strcmp(tok, "create")) {
+		// Create a new database
+		return 0;
 	} else if(!strcmp(tok, "load")) {
 		tok = strtok(NULL, " ");
 		if(!tok) {
@@ -87,8 +91,8 @@ int repl(const char *prompt)
 			break;
 		} else {
 			linenoiseHistoryAdd(line);
-			if(execCmd(line) == -1) {
-				printf(ANSI_COLOR_RED "No idea what this means: " ANSI_COLOR_RESET "%s\n", line);
+			if(routecmd(line) == -1) {
+				printf(ANSI_COLOR_RED "%s is not a known command" ANSI_COLOR_RESET "\n", line);
 			}
 		}
 		free(line);

@@ -19,16 +19,16 @@ void *wmmapfile(const char *filename)
 	struct stat sb;
 	errno = 0;
 	int fd = open(filename, O_RDONLY);
-	if(errno) goto fileError;
+	if(errno) goto error;
 
 	fstat(fd, &sb);
-	if(!sb.st_size) goto fileError;
+	if(!sb.st_size) goto error;
 
 	printf("Size: %llu\n", (uint64_t)sb.st_size);
 
 	void *block = mmap(NULL, sb.st_size, PROT_READ, MAP_SHARED, fd, 0);
 	return block;
 
-	fileError:
-		return NULL;
+error:
+	return NULL;
 }

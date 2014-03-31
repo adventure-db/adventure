@@ -6,7 +6,7 @@
 #include "errno.h"
 #include "graph.h"
 
-#include "lib/jsmn/jsmn.h"
+#include <lib/jsmn/jsmn.h>
 #include "wmmap.h"
 
 int streamJSON(char *json)
@@ -21,7 +21,7 @@ int streamJSON(char *json)
 	printf("Result code: %d\n", resultCode);
 	printf("toksuper: %d\n", p.toksuper);
 
-	unsigned int len = p.toksuper < 0? resultCode : p.toksuper;
+	int len = p.toksuper < 0? resultCode : p.toksuper;
 	for(int i = 0; i < len; i++) {
 		jsmntok_t key = tokens[i];
 		unsigned int keyLen = key.end - key.start;

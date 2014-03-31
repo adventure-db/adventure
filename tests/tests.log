@@ -1,0 +1,72 @@
+DEBUG tests/struct/list_tests.c:66: ----- RUNNING: ./tests/struct/list_tests
+DEBUG tests/struct/list_tests.c:59: 
+----- test_create
+DEBUG tests/struct/list_tests.c:60: 
+----- test_push_pop
+DEBUG tests/struct/list_tests.c:61: 
+----- test_destroy
+DEBUG tests/struct/list_tests.c:66: ----- RUNNING: ./tests/struct/list_tests
+DEBUG tests/struct/list_tests.c:59: 
+----- test_create
+DEBUG tests/struct/list_tests.c:60: 
+----- test_push_pop
+DEBUG tests/struct/list_tests.c:61: 
+----- test_destroy
+DEBUG tests/struct/list_tests.c:66: ----- RUNNING: ./tests/struct/list_tests
+DEBUG tests/struct/list_tests.c:59: 
+----- test_create
+DEBUG tests/struct/list_tests.c:60: 
+----- test_push_pop
+DEBUG tests/struct/list_tests.c:61: 
+----- test_destroy
+DEBUG tests/struct/list_tests.c:66: ----- RUNNING: ./tests/struct/list_tests
+DEBUG tests/struct/list_tests.c:59: 
+----- test_create
+DEBUG tests/struct/list_tests.c:60: 
+----- test_push_pop
+DEBUG tests/struct/list_tests.c:61: 
+----- test_destroy
+DEBUG tests/struct/list_tests.c:66: ----- RUNNING: ./tests/struct/list_tests
+DEBUG tests/struct/list_tests.c:59: 
+----- test_create
+DEBUG tests/struct/list_tests.c:60: 
+----- test_push_pop
+[ERROR] (tests/struct/list_tests.c:29: errno: None) Wrong last value
+DEBUG tests/struct/list_tests.c:66: ----- RUNNING: ./tests/struct/list_tests
+DEBUG tests/struct/list_tests.c:59: 
+----- test_create
+DEBUG tests/struct/list_tests.c:60: 
+----- test_push_pop
+[ERROR] (tests/struct/list_tests.c:29: errno: None) Wrong last value
+DEBUG tests/struct/list_tests.c:66: ----- RUNNING: ./tests/struct/list_tests
+DEBUG tests/struct/list_tests.c:59: 
+----- test_create
+DEBUG tests/struct/list_tests.c:60: 
+----- test_push_pop
+[ERROR] (tests/struct/list_tests.c:29: errno: None) Wrong last value
+DEBUG tests/struct/list_tests.c:66: ----- RUNNING: ./tests/struct/list_tests
+DEBUG tests/struct/list_tests.c:59: 
+----- test_create
+DEBUG tests/struct/list_tests.c:60: 
+----- test_push_pop
+[ERROR] (tests/struct/list_tests.c:29: errno: None) Wrong last value
+DEBUG tests/struct/list_tests.c:66: ----- RUNNING: ./tests/struct/list_tests
+DEBUG tests/struct/list_tests.c:59: 
+----- test_create
+DEBUG tests/struct/list_tests.c:60: 
+----- test_push_pop
+[ERROR] (tests/struct/list_tests.c:29: errno: None) Wrong last value
+DEBUG tests/struct/list_tests.c:66: 
+----- RUNNING: ./tests/struct/list_tests
+DEBUG tests/struct/list_tests.c:59: 
+----- test_create
+DEBUG tests/struct/list_tests.c:60: 
+----- test_push_pop
+[ERROR] (tests/struct/list_tests.c:29: errno: None) Wrong last value
+DEBUG tests/struct/list_tests.c:66: 
+----- RUNNING: ./tests/struct/list_tests
+DEBUG tests/struct/list_tests.c:59: 
+----- test_create
+DEBUG tests/struct/list_tests.c:60: 
+----- test_push_pop
+[ERROR] (tests/struct/list_tests.c:29: errno: None) Wrong last value

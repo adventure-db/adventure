@@ -1,0 +1,39 @@
+journey
+a graph query language
+{loc = small-town and gender = F} [:train and time = 12:00 AM]> (loc = anywhere)
+
+Goals:
+- Lazy
+- Concise
+- Declarative
+- Inspired by regular expressions
+
+followers = {} [follows]> {@ladygaga}
+
+head {} [follows]> {@ladygaga}
+	All followers of Lady Gaga
+
+tail {@ladygaga} <[follows] 
+	Same as above
+
+count tail {@ladygaga} <[follows] {}
+	How many followers does lady gaga have?
+
+{#celebs} <[follows]> (@ladygaga)
+	All celebrities who are both following and followed by Lady Gaga
+
+{$age > 50} <[follows] (@ladygaga)
+
+Notation:
+{} : matches and returns a node into the result set
+() : matches but does not return a node
+[]> : directed edge right
+<[] : directed edge left
+<[]> : two-way edge (must exist in both directions)
+[] : same as two-way edge?
+* : zero or more
++ : one or more
+{a,b} : a to b inclusive times
+
+TODO:
+Look into Gremlin and Cypher

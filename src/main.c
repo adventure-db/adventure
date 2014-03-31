@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-#include "repl.h"
+#include <src/repl/repl.h>
 #include "graph.h"
 
 int main(int argc, char *argv[]) {
