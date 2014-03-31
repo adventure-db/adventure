@@ -27,3 +27,6 @@ tools
 
 # Debug info
 *.dSYM
+
+# Ignore generated binaries
+bin/
