@@ -4,7 +4,7 @@ CC = clang
 OUTPUT = bin/adv
 
 # Sources
-SOURCES := $(wildcard src/**/*.c src/*.c lib/linenoise/linenoise.c)
+SOURCES := $(wildcard src/**/*.c src/*.c lib/linenoise/linenoise.c lib/sds/sds.c)
 SOURCES := $(filter-out src/main.c, $(SOURCES))
 OBJECTS = $(patsubst %.c,%.o,$(SOURCES))
 

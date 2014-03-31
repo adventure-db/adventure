@@ -1,23 +1,31 @@
 #ifndef ADV_HASH_H
 #define ADV_HASH_H
 
-struct hashtbl
+typedef int (*hash_compare)(void *a, void *b);
+typedef unsigned long (*hash_fn)(void *key);
+
+struct hashmap
 {
-	void **data;
-	uint32_t n;
-	uint32_t size;
+	struct list *buckets;
+	unsigned long n;
+	unsigned long size;
+
+	hash_compare compare;
+	hash_fn hash;
 };
 
-struct hashblock
+struct hashentry
 {
 	void *key;
 	void *val;
-	uint32_t hash;
+	unsigned long hash;
 };
 
-unsigned long simplehash(void *elem)
-{
+struct hashmap *hmap_create(hash_fn, hash_compare);
+void hmap_destroy(struct hashmap *map);
 
-}
+void hmap_set(struct hashmap *map, void *key, void *val);
+void *hmap_get(struct hashmap *map, void *key);
+void *hmap_remove(struct hashmap *map, void *key);
 
 #endif

@@ -36,32 +36,6 @@ int streamJSON(char *json)
 	return resultCode;
 }
 
-/*
-
-int load(const char *filename)
-{
-	#define CHUNK 1024
-	char buf[CHUNK+1];
-	int len;
-
-	errno = 0;
-	FILE *file = fopen(filename, "r");
-	if(!file) {
-		printf("Error opening file: %s\n", strerror(errno));
-		return 1;
-	}
-
-	while( (len = fread(buf, 1, sizeof(buf), file)) > 0 ) {
-		buf[len] = '\0';
-		streamJSON(buf);
-	}
-	printf("\n");
-
-	fclose(file);
-
-	return 0;
-}*/
-
 int load(const char *filename)
 {
 	errno = 0;
