@@ -46,6 +46,11 @@ int isExitCmd(const char *line)
 			!strcmp(line, "exit");
 }
 
+void registerCmd(char *str, int (*fn)(char *cmd))
+{
+
+}
+
 // TODO: add register functions to make this cleaner
 // TODO: make use of sds
 int routecmd(char *cmd)

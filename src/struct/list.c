@@ -47,12 +47,36 @@ void list_push(struct list *list, void *val)
 
 void *list_pop(struct list *list)
 {
-	return list->last? list_remove(list, list->last) : NULL;
+	return list_remove(list, list->last);
+}
+
+void list_unshift(struct list *list, void *val)
+{
+	struct listelem *elem = calloc(1, sizeof(struct listelem));
+	elem->val = val;
+	elem->prev = NULL;
+	elem->next = list->first;
+
+	if(list->first) {
+		list->first->prev = elem;
+		list->first = elem;
+	} else {
+		list->first = elem;
+		list->last = elem;
+	}
+	
+	list->count++;
+}
+
+void *list_shift(struct list *list)
+{
+	return list_remove(list, list->first);
 }
 
 void *list_remove(struct list *list, struct listelem *elem)
 {
 	void *val = NULL;
+	check(list->first != NULL, "Cannot remove from empty list");
 
 	if(elem == list->first && elem == list->last) {
 		list->first = NULL;
@@ -72,5 +96,6 @@ void *list_remove(struct list *list, struct listelem *elem)
 	val = elem->val;
 	free(elem);
 
+error:
 	return val;
 }

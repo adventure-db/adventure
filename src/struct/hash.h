@@ -1,16 +1,14 @@
 #ifndef ADV_HASH_H
 #define ADV_HASH_H
 
-#include <stdint.h>
-
-typedef struct hashtbl
+struct hashtbl
 {
 	void **data;
 	uint32_t n;
 	uint32_t size;
 };
 
-typedef struct hashblock
+struct hashblock
 {
 	void *key;
 	void *val;

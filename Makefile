@@ -22,6 +22,8 @@ CFLAGS = -Wall -Werror -g -v $(HEADERS_DIRS) $(SOURCES)
 LDFLAGS = $(LIBRARIES)
 
 default:
+	@mkdir -p bin
+	@mkdir -p build
 	$(CC) $(CFLAGS) src/main.c $(LDFLAGS) -o $(OUTPUT)
 
 # Testing

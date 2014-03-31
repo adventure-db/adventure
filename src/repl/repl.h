@@ -3,4 +3,4 @@
 
 int repl(const char *prompt);
 
-#endif	/* ADV_REPL_H */
+#endif

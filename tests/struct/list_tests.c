@@ -23,13 +23,13 @@ char *test_destroy()
 char *test_push_pop()
 {
 	list_push(list, test1);
-	mu_assert(list->last->val == test1, "Wrong last value");
+	mu_assert(list_last(list) == test1, "Wrong last value");
+
+	list_push(list, test2);
+	mu_assert(list_last(list) == test2, "Wrong last value");
 
 	list_push(list, test3);
-	mu_assert(list->last->val == test2, "Wrong last value");
-
-	list_push(list, test3);
-	mu_assert(list->last->val == test3, "Wrong last value");
+	mu_assert(list_last(list) == test3, "Wrong last value");
 
 	char *val = list_pop(list);
 	mu_assert(val == test3, "Wrong value on pop");
@@ -39,7 +39,33 @@ char *test_push_pop()
 
 	val = list_pop(list);
 	mu_assert(val == test1, "Wrong value on pop");
-	mu_assert(list->count == 0, "Wrong count");
+	mu_assert(list_count(list) == 0, "Wrong count");
+
+	return NULL;
+}
+
+char *test_shift_unshift()
+{
+	list_unshift(list, test1);
+	mu_assert(list_last(list) == test1, "Wrong last value");
+
+	list_unshift(list, test2);
+	mu_assert(list_first(list) == test2, "Wrong first value");
+	mu_assert(list_last(list) == test1, "Wrong last value");
+
+	list_unshift(list, test3);
+	mu_assert(list_first(list) == test3, "Wrong first value");
+	mu_assert(list_last(list) == test1, "Wrong last value");
+
+	char *val = list_shift(list);
+	mu_assert(val == test3, "Wrong value on unshift");
+
+	val = list_shift(list);
+	mu_assert(val == test2, "Wrong value on unshift");
+
+	val = list_shift(list);
+	mu_assert(val == test1, "Wrong value on unshift");
+	mu_assert(list_count(list) == 0, "Wrong count");
 
 	return NULL;
 }
@@ -58,6 +84,7 @@ char *all_tests()
 
 	mu_run_test(test_create);
 	mu_run_test(test_push_pop);
+	mu_run_test(test_shift_unshift);
 	mu_run_test(test_destroy);
 
 	return NULL;
