@@ -4,10 +4,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include "errno.h"
-#include "graph.h"
 
 #include <lib/jsmn/jsmn.h>
-#include "wmmap.h"
+#include <src/util/fs.h>
 
 int streamJSON(char *json)
 {
@@ -39,7 +38,7 @@ int streamJSON(char *json)
 int load(const char *filename)
 {
 	errno = 0;
-	char *buf = wmmapfile(filename);
+	char *buf = fs_map_file(filename);
 	if(!buf) goto fileError;
 	
 	int code = streamJSON(buf);

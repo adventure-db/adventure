@@ -3,6 +3,8 @@
 
 #include <stdlib.h>
 
+typedef struct listelem *list_iter;
+
 struct listelem
 {
 	struct listelem *prev;

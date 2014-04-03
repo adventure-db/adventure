@@ -3,4 +3,4 @@
 
 int load(const char *filename);
 
-#endif	/* ADV_LOAD_H */
+#endif

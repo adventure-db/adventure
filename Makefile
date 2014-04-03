@@ -26,6 +26,9 @@ default:
 	@mkdir -p build
 	$(CC) $(CFLAGS) src/main.c $(LDFLAGS) -o $(OUTPUT)
 
+valgrind:
+	VALGRIND = "valgrind --log-file=/tmp/valgrind-%p.log" $(MAKE)
+
 # Testing
 .PHONY: tests
 tests: $(TESTS)
@@ -34,8 +37,7 @@ tests: $(TESTS)
 # Clean up output
 .PHONY: clean
 clean:
-	rm -f *.o *~ $(OUTPUT)
-	rm -f *.o *~ $(TESTS)
+	rm -f *.o *~ tests/*.log $(OUTPUT) $(TESTS)
 	rm -rf `find . -name "*.dSYM" -print`
 
 # Check for dangerous functions

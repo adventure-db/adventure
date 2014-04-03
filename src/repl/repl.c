@@ -1,108 +1,90 @@
 #include "repl.h"
+#include "macros.h"
+#include "cmds.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include <src/load.h>
+#include <src/repl/load.h>
+#include <src/struct/trie.h>
+#include <src/struct/list.h>
 #include <lib/linenoise/linenoise.h>
 
-#define ANSI_COLOR_RED		"\x1b[31m"
-#define ANSI_COLOR_GREEN	"\x1b[32m"
-#define ANSI_COLOR_YELLOW	"\x1b[33m"
-#define ANSI_COLOR_BLUE		"\x1b[34m"
-#define ANSI_COLOR_MAGENTA	"\x1b[35m"
-#define ANSI_COLOR_CYAN		"\x1b[36m"
-#define ANSI_COLOR_RESET	"\x1b[0m"
+static struct trie *cmds = NULL;
 
-#define SUCCESS_COLOR		"\x1b[0;32m"
-#define ERROR_COLOR			"\x1b[0;31m"
- 
-void printHello()
+void hello()
 {
 	printf("%s\n%s\n\n", "Never fear quarrels, but seek hazardous adventures.", "- Alexandre Dumas");
 }
 
-void printGoodbye()
+void goodbye()
 {
 	printf("%s\n", "All great journeys must come to an end.");
 }
 
 void completion(const char *buf, linenoiseCompletions *lc)
 {
-	if(buf[0] == 'l') {
-		linenoiseAddCompletion(lc, "load");
+	struct list *list = list_create();
+	trie_get_keys(cmds, buf, list);
+	for(list_iter cur = list->first; cur != NULL; cur = cur->next) {
+		linenoiseAddCompletion(lc, cur->val);
 	}
-	if(buf[0] == 's') {
-		linenoiseAddCompletion(lc, "stats");
-		linenoiseAddCompletion(lc, "status");
-	}
+	list_destroy(list);
 }
 
-int isExitCmd(const char *line)
+int repl_wants_exit(const char *line)
 {
 	return 	!strcmp(line, "q") ||
 			!strcmp(line, "quit") ||
 			!strcmp(line, "exit");
 }
 
-void registerCmd(char *str, int (*fn)(char *cmd))
+void repl_add_cmd(char *str, int (*fn)(char *))
 {
-
+	trie_add(cmds, str, fn);
 }
 
-// TODO: add register functions to make this cleaner
-// TODO: make use of sds
-int routecmd(char *cmd)
+int repl_route_cmd(char *line)
 {
-	char *tok = strtok(cmd, " ");
+	char *cmd = strtok(line, " ");
+	int (*fn)(char *) = (int (*)(char *)) trie_get(cmds, cmd);
+	if(fn) return fn( strtok(NULL, "\0") );
+	return -1;
+}
 
-	if(!strcmp(tok, "status")) {
-		printf("%s %s\n", SUCCESS_COLOR "Connected.", SUCCESS_COLOR "Ready." ANSI_COLOR_RESET);
-	} else if(!strcmp(tok, "create")) {
-		// Create a new database
-		return 0;
-	} else if(!strcmp(tok, "load")) {
-		tok = strtok(NULL, " ");
-		if(!tok) {
-			printf(ERROR_COLOR "load requires a file path" ANSI_COLOR_RESET "\n");
-			return 2;
-		} else {
-			// We have a file path
-			printf("Loading %s...\n", tok);
-			return load(tok);
-		}
-	} else if(!strcmp(tok, "gen")) {
-		printf("We should generate a graph now!\n");
-	} else {
-		return -1;
-	}
-	return 0;
+static void register_cmds()
+{
+	repl_add_cmd("create", create_db);
+	repl_add_cmd("load", load_json);
+	repl_add_cmd("status", status);
+	repl_add_cmd("stats", status);
+	repl_add_cmd("sting!", sting);
 }
 
 int repl(const char *prompt)
 {
-	printHello();
+	cmds = trie_create();
+	register_cmds();
 	linenoiseSetCompletionCallback(completion);
 
-	//Test
-	//generateGraph();
-
+	hello();
 	char *line;
 	while( (line = linenoise(prompt)) != NULL ) {
 		if(line[0] == '\0') {
 			continue;
-		} else if (isExitCmd(line)) {
+		} else if(repl_wants_exit(line)) {
 			break;
 		} else {
 			linenoiseHistoryAdd(line);
-			if(routecmd(line) == -1) {
+			if(repl_route_cmd(line) == -1) {
 				printf(ANSI_COLOR_RED "%s is not a known command" ANSI_COLOR_RESET "\n", line);
 			}
 		}
 		free(line);
 	}
+	goodbye();
 
-	printGoodbye();
+	trie_destroy(cmds);
 	return 0;
 }

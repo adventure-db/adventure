@@ -1,24 +1,24 @@
-#ifndef ADV_GRAPH_H
-#define ADV_GRAPH_H
+#ifndef ADV_STRUCT_H
+#define ADV_STRUCT_H
 
-/* Data structures */
+// Data structures for database
 struct edge
 {
 	unsigned long type;
-	void *kv;
+	unsigned long p_kv;
 
-	struct node *node;
-	struct edge *next;
+	unsigned long p_node;
+	unsigned long p_next;
 };
 
 struct node
 {
 	// Key/value pairs (properties)
-	void *kv;
+	unsigned long p_kv;
 
-	// Edges (these are offsets, not pointers)
-	unsigned long to;
-	unsigned long from;
+	// Pointers to edges (these are offsets, aka relative pointers)
+	unsigned long p_to;
+	unsigned long p_from;
 };
 
 struct graph
@@ -35,9 +35,5 @@ struct graph
 	// TODO: add pool of free entries etc...
 
 };
-
-/* Helper functions */
-void genGraph();
-void debugPrint(struct graph g);
 
 #endif

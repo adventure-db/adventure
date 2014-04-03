@@ -9,7 +9,7 @@ db - contains core database logic
 struct - commonly used data structures
 	list - doubly-linked list
 	darray - dynamic array
-	hashtbl - hash table (chaining)
+	hashmap - hash table (chaining)
 
 util - utility functions for debugging, etc...
 repl - code for interactive command line
