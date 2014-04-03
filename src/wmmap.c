@@ -26,7 +26,7 @@ void *wmmapfile(const char *filename)
 
 	printf("Size: %llu\n", (uint64_t)sb.st_size);
 
-	void *block = mmap(NULL, sb.st_size, PROT_READ, MAP_SHARED, fd, 0);
+	void *block = wmmap(NULL, sb.st_size, PROT_READ, MAP_SHARED, fd, 0);
 	return block;
 
 error:
