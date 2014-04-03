@@ -1,124 +1,25 @@
-DEBUG tests/struct/list_tests.c:66: ----- RUNNING: ./tests/struct/list_tests
-DEBUG tests/struct/list_tests.c:59: 
+DEBUG tests/struct/darray_tests.c:83: 
+----- RUNNING: ./tests/struct/darray_tests
+DEBUG tests/struct/darray_tests.c:75: 
 ----- test_create
-DEBUG tests/struct/list_tests.c:60: 
+DEBUG tests/struct/darray_tests.c:76: 
 ----- test_push_pop
-DEBUG tests/struct/list_tests.c:61: 
+[ERROR] (src/struct/darray.c:108: errno: None) Cannot pop from an empty array
+DEBUG tests/struct/darray_tests.c:77: 
+----- test_auto_expand
+DEBUG tests/struct/darray_tests.c:78: 
 ----- test_destroy
-DEBUG tests/struct/list_tests.c:66: ----- RUNNING: ./tests/struct/list_tests
-DEBUG tests/struct/list_tests.c:59: 
+DEBUG tests/struct/hashmap_tests.c:113: 
+----- RUNNING: ./tests/struct/hashmap_tests
+DEBUG tests/struct/hashmap_tests.c:105: 
 ----- test_create
-DEBUG tests/struct/list_tests.c:60: 
------ test_push_pop
-DEBUG tests/struct/list_tests.c:61: 
------ test_destroy
-DEBUG tests/struct/list_tests.c:66: ----- RUNNING: ./tests/struct/list_tests
-DEBUG tests/struct/list_tests.c:59: 
------ test_create
-DEBUG tests/struct/list_tests.c:60: 
------ test_push_pop
-DEBUG tests/struct/list_tests.c:61: 
------ test_destroy
-DEBUG tests/struct/list_tests.c:66: ----- RUNNING: ./tests/struct/list_tests
-DEBUG tests/struct/list_tests.c:59: 
------ test_create
-DEBUG tests/struct/list_tests.c:60: 
------ test_push_pop
-DEBUG tests/struct/list_tests.c:61: 
------ test_destroy
-DEBUG tests/struct/list_tests.c:66: ----- RUNNING: ./tests/struct/list_tests
-DEBUG tests/struct/list_tests.c:59: 
------ test_create
-DEBUG tests/struct/list_tests.c:60: 
------ test_push_pop
-[ERROR] (tests/struct/list_tests.c:29: errno: None) Wrong last value
-DEBUG tests/struct/list_tests.c:66: ----- RUNNING: ./tests/struct/list_tests
-DEBUG tests/struct/list_tests.c:59: 
------ test_create
-DEBUG tests/struct/list_tests.c:60: 
------ test_push_pop
-[ERROR] (tests/struct/list_tests.c:29: errno: None) Wrong last value
-DEBUG tests/struct/list_tests.c:66: ----- RUNNING: ./tests/struct/list_tests
-DEBUG tests/struct/list_tests.c:59: 
------ test_create
-DEBUG tests/struct/list_tests.c:60: 
------ test_push_pop
-[ERROR] (tests/struct/list_tests.c:29: errno: None) Wrong last value
-DEBUG tests/struct/list_tests.c:66: ----- RUNNING: ./tests/struct/list_tests
-DEBUG tests/struct/list_tests.c:59: 
------ test_create
-DEBUG tests/struct/list_tests.c:60: 
------ test_push_pop
-[ERROR] (tests/struct/list_tests.c:29: errno: None) Wrong last value
-DEBUG tests/struct/list_tests.c:66: ----- RUNNING: ./tests/struct/list_tests
-DEBUG tests/struct/list_tests.c:59: 
------ test_create
-DEBUG tests/struct/list_tests.c:60: 
------ test_push_pop
-[ERROR] (tests/struct/list_tests.c:29: errno: None) Wrong last value
-DEBUG tests/struct/list_tests.c:66: 
------ RUNNING: ./tests/struct/list_tests
-DEBUG tests/struct/list_tests.c:59: 
------ test_create
-DEBUG tests/struct/list_tests.c:60: 
------ test_push_pop
-[ERROR] (tests/struct/list_tests.c:29: errno: None) Wrong last value
-DEBUG tests/struct/list_tests.c:66: 
------ RUNNING: ./tests/struct/list_tests
-DEBUG tests/struct/list_tests.c:59: 
------ test_create
-DEBUG tests/struct/list_tests.c:60: 
------ test_push_pop
-[ERROR] (tests/struct/list_tests.c:29: errno: None) Wrong last value
-DEBUG tests/struct/list_tests.c:66: 
------ RUNNING: ./tests/struct/list_tests
-DEBUG tests/struct/list_tests.c:59: 
------ test_create
-DEBUG tests/struct/list_tests.c:60: 
------ test_push_pop
-[ERROR] (tests/struct/list_tests.c:29: errno: None) Wrong last value
-DEBUG tests/struct/list_tests.c:66: 
------ RUNNING: ./tests/struct/list_tests
-DEBUG tests/struct/list_tests.c:59: 
------ test_create
-DEBUG tests/struct/list_tests.c:60: 
------ test_push_pop
-DEBUG tests/struct/list_tests.c:61: 
------ test_destroy
-DEBUG tests/struct/list_tests.c:66: 
------ RUNNING: ./tests/struct/list_tests
-DEBUG tests/struct/list_tests.c:59: 
------ test_create
-DEBUG tests/struct/list_tests.c:60: 
------ test_push_pop
-DEBUG tests/struct/list_tests.c:61: 
------ test_destroy
-DEBUG tests/struct/list_tests.c:66: 
------ RUNNING: ./tests/struct/list_tests
-DEBUG tests/struct/list_tests.c:59: 
------ test_create
-DEBUG tests/struct/list_tests.c:60: 
------ test_push_pop
-DEBUG tests/struct/list_tests.c:61: 
------ test_destroy
-DEBUG tests/struct/list_tests.c:93: 
------ RUNNING: ./tests/struct/list_tests
-DEBUG tests/struct/list_tests.c:85: 
------ test_create
-DEBUG tests/struct/list_tests.c:86: 
------ test_push_pop
-DEBUG tests/struct/list_tests.c:87: 
------ test_shift_unshift
-[ERROR] (tests/struct/list_tests.c:50: errno: None) Wrong last value
-DEBUG tests/struct/list_tests.c:93: 
------ RUNNING: ./tests/struct/list_tests
-DEBUG tests/struct/list_tests.c:85: 
------ test_create
-DEBUG tests/struct/list_tests.c:86: 
------ test_push_pop
-DEBUG tests/struct/list_tests.c:87: 
------ test_shift_unshift
-DEBUG tests/struct/list_tests.c:88: 
+DEBUG tests/struct/hashmap_tests.c:106: 
+----- test_basics
+[ERROR] (src/struct/hashmap.c:171: errno: None) Bucket doesn't exist
+[ERROR] (src/struct/hashmap.c:171: errno: None) Bucket doesn't exist
+DEBUG tests/struct/hashmap_tests.c:107: 
+----- test_resize
+DEBUG tests/struct/hashmap_tests.c:108: 
 ----- test_destroy
 DEBUG tests/struct/list_tests.c:93: 
 ----- RUNNING: ./tests/struct/list_tests
@@ -130,15 +31,36 @@ DEBUG tests/struct/list_tests.c:87:
 ----- test_shift_unshift
 DEBUG tests/struct/list_tests.c:88: 
 ----- test_destroy
-DEBUG tests/struct/list_tests.c:93: 
------ RUNNING: ./tests/struct/list_tests
-DEBUG tests/struct/list_tests.c:85: 
+DEBUG tests/struct/trie_tests.c:71: 
+----- RUNNING: ./tests/struct/trie_tests
+DEBUG tests/struct/trie_tests.c:64: 
 ----- test_create
-DEBUG tests/struct/list_tests.c:86: 
+DEBUG tests/struct/trie_tests.c:65: 
+----- test_add_get
+DEBUG tests/struct/trie_tests.c:66: 
+----- test_destroy
+DEBUG tests/struct/darray_tests.c:83: 
+----- RUNNING: ./tests/struct/darray_tests
+DEBUG tests/struct/darray_tests.c:75: 
+----- test_create
+DEBUG tests/struct/darray_tests.c:76: 
 ----- test_push_pop
-DEBUG tests/struct/list_tests.c:87: 
------ test_shift_unshift
-DEBUG tests/struct/list_tests.c:88: 
+[ERROR] (src/struct/darray.c:108: errno: None) Cannot pop from an empty array
+DEBUG tests/struct/darray_tests.c:77: 
+----- test_auto_expand
+DEBUG tests/struct/darray_tests.c:78: 
+----- test_destroy
+DEBUG tests/struct/hashmap_tests.c:113: 
+----- RUNNING: ./tests/struct/hashmap_tests
+DEBUG tests/struct/hashmap_tests.c:105: 
+----- test_create
+DEBUG tests/struct/hashmap_tests.c:106: 
+----- test_basics
+[ERROR] (src/struct/hashmap.c:171: errno: None) Bucket doesn't exist
+[ERROR] (src/struct/hashmap.c:171: errno: None) Bucket doesn't exist
+DEBUG tests/struct/hashmap_tests.c:107: 
+----- test_resize
+DEBUG tests/struct/hashmap_tests.c:108: 
 ----- test_destroy
 DEBUG tests/struct/list_tests.c:93: 
 ----- RUNNING: ./tests/struct/list_tests
@@ -150,49 +72,11 @@ DEBUG tests/struct/list_tests.c:87:
 ----- test_shift_unshift
 DEBUG tests/struct/list_tests.c:88: 
 ----- test_destroy
-DEBUG tests/struct/list_tests.c:93: 
------ RUNNING: ./tests/struct/list_tests
-DEBUG tests/struct/list_tests.c:85: 
+DEBUG tests/struct/trie_tests.c:71: 
+----- RUNNING: ./tests/struct/trie_tests
+DEBUG tests/struct/trie_tests.c:64: 
 ----- test_create
-DEBUG tests/struct/list_tests.c:86: 
------ test_push_pop
-DEBUG tests/struct/list_tests.c:87: 
------ test_shift_unshift
-DEBUG tests/struct/list_tests.c:88: 
------ test_destroy
-DEBUG tests/struct/list_tests.c:93: 
------ RUNNING: ./tests/struct/list_tests
-DEBUG tests/struct/list_tests.c:85: 
------ test_create
-DEBUG tests/struct/list_tests.c:86: 
------ test_push_pop
-DEBUG tests/struct/list_tests.c:87: 
------ test_shift_unshift
-DEBUG tests/struct/list_tests.c:93: 
------ RUNNING: ./tests/struct/list_tests
-DEBUG tests/struct/list_tests.c:85: 
------ test_create
-DEBUG tests/struct/list_tests.c:86: 
------ test_push_pop
-DEBUG tests/struct/list_tests.c:87: 
------ test_shift_unshift
-DEBUG tests/struct/list_tests.c:93: 
------ RUNNING: ./tests/struct/list_tests
-DEBUG tests/struct/list_tests.c:85: 
------ test_create
-DEBUG tests/struct/list_tests.c:86: 
------ test_push_pop
-DEBUG tests/struct/list_tests.c:87: 
------ test_shift_unshift
-DEBUG tests/struct/list_tests.c:88: 
------ test_destroy
-DEBUG tests/struct/list_tests.c:93: 
------ RUNNING: ./tests/struct/list_tests
-DEBUG tests/struct/list_tests.c:85: 
------ test_create
-DEBUG tests/struct/list_tests.c:86: 
------ test_push_pop
-DEBUG tests/struct/list_tests.c:87: 
------ test_shift_unshift
-DEBUG tests/struct/list_tests.c:88: 
+DEBUG tests/struct/trie_tests.c:65: 
+----- test_add_get
+DEBUG tests/struct/trie_tests.c:66: 
 ----- test_destroy
