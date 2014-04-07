@@ -1,0 +1,108 @@
+#include "dbf_old.h"
+
+#include <src/util/dbg.h>
+#include <src/util/fs.h>
+
+#define DBF_INIT_SIZE_POW_2 20
+/*
+	file.0 has size 2^s
+	file.i has size 2^(s + i - 1)
+*/
+
+// Returns size of i-th volume on disk
+static inline size_t dbf_max_size(struct dbf *dbf, size_t i)
+{
+	return (0x1 << dbf->init_size) << (i == 0? 0 : i - 1);
+}
+
+void dbf_add_vol(struct dbf *dbf)
+{
+	check(dbf->n_files < DBF_MAX_N_FILES - 1, "Max volume limit reached");
+
+	sds path = sdscatprintf(sdsempty(), "%s.%lu", dbf->name, dbf->n_files);
+	int res = fs_create_file(path, dbf_max_size(dbf, dbf->n_files));
+	check(res == 0, "Could not create file for new volume");
+
+	void *block = fs_map(path);
+	check_mem(block);
+
+	dbf->file[dbf->n_files] = block;
+	dbf->n_files++;
+
+error:
+	return;
+}
+
+struct dbf *dbf_open(const char *name, int flags)
+{
+	struct dbf *dbf = calloc(1, sizeof(struct dbf));
+	check_mem(dbf);
+
+	dbf->init_size = DBF_INIT_SIZE_POW_2;
+
+	void *block = 0;
+	size_t i = 0;
+	sds path;
+	for(i=0; i<DBF_MAX_N_FILES; i++) {
+		path = sdscatprintf(sdsempty(), "%s.%lu", name, i);
+
+		if(i==0 && (flags & DBF_O_CREAT)) {
+			fs_create_file(path, dbf_max_size(dbf, i));
+		}
+
+		block = fs_map(path);
+
+		sdsfree(path);
+
+		if(!block) break;
+		dbf->file[i] = block;
+	}
+
+	dbf->name = sdsnew(name);
+	dbf->n_files = i;
+	return dbf;
+
+error:
+	return NULL;
+}
+
+void dbf_close(struct dbf *dbf)
+{
+	if(dbf) {
+		// Close all files
+		for(int i=0; i<dbf->n_files; i++) {
+			fs_unmap(dbf->file[i], dbf_max_size(dbf, i));
+		}
+
+		sdsfree(dbf->name);
+		free(dbf);
+	}
+}
+
+/*
+// Allocator
+dbf_p dbf_alloc(struct dbf *dbf, size_t size)
+{..
+	size_t n = dbf->n_files - 1;
+	size_t used = dbf->size[i];
+	size_t max_size = dbf_max_size(dbf, n);
+	size_t rem = max_size - used;
+
+	// TODO: validate size and allow spread allocations
+	if(rem < size) {
+		dbf_add_vol(dbf);
+		return dbf_alloc(dbf, size);
+	} else {
+		return dbf->file[n] + i;
+	}
+
+error:
+	return 0;
+}
+
+// TODO: right now this is a no-op (allocated space never freed)
+void dbf_free(struct dbf *dbf, dbf_p p)
+{
+	return;
+}
+*/

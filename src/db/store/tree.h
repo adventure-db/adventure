@@ -1,5 +1,5 @@
-#ifndef ADV_DB_COTREE_H
-#define ADV_DB_COTREE_H
+#ifndef ADV_DB_TREE_TREE_H
+#define ADV_DB_TREE_TREE_H
 
 /*	Cache-oblivious search tree
 	
@@ -7,7 +7,7 @@
 	http://www.cs.au.dk/~gerth/papers/cacheoblivious05.pdf
 */
 
-struct cotree
+struct db_tree
 {
 
 };

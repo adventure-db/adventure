@@ -1,3 +1,47 @@
+Disk data structures:
+.db_name.db/
+	meta - metadata
+	nodes - store the list of nodes (double on resize)
+	edges - store the list of edges (double on resize)
+	nodekv
+	edgekv
 
-Data structure on disk:
-nodes.N - store the list of nodes
+Node storage:
+
+
+Edge storage:
+ --------------- ----------------------- --------------
+|  node 0 edges | node 2 edges          | node 1 edges |
+ --------------- ----------------------- --------------
+
+All edges are stored in one large edge file. Edges are divided into buckets
+based on either start or end node. The file is not ordered by buckets,
+but each bucket contains all edges for a given node. Each bucket has
+size 2^i for some i. On insertion, if space is available in the bucket,
+cost is O(1). If no space available, the entire bucket is copied to a new
+bucket at the end of the array with double the size (new size = 2^(i+1)),
+costing O(d*) in worst-case where d* = maximum degree of graph
+(TODO: how can this be de-amortized?)
+
+Edge blocks:
+----------------
+HEADER
+8 - size: size of this block
+8 - kv ptr: location of values in kv file
+----------------
+DATA ITEM
+8 - end node
+----------------
+
+Edge kv blocks:
+----------------
+HEADER
+4 - type: type of data structure (e.g. linked list, B+tree)
+8 - size: size of this block
+----------------
+DATA ITEM
+4 - size of this item
+4 - next item
+4 - key
+8 - value
+----------------

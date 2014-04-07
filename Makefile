@@ -4,7 +4,7 @@ CC = clang
 OUTPUT = bin/adv
 
 # Sources
-SOURCES := $(wildcard src/**/*.c src/*.c lib/linenoise/linenoise.c lib/sds/sds.c)
+SOURCES := $(wildcard src/**/*.c src/**/**/*.c src/*.c lib/linenoise/linenoise.c lib/sds/sds.c)
 SOURCES := $(filter-out src/main.c, $(SOURCES))
 OBJECTS = $(patsubst %.c,%.o,$(SOURCES))
 
@@ -37,7 +37,7 @@ tests: $(TESTS)
 # Clean up output
 .PHONY: clean
 clean:
-	rm -f *.o *~ tests/*.log $(OUTPUT) $(TESTS)
+	rm -f *.o *~ tests/*.log $(OUTPUT) $(TESTS) testfile_*
 	rm -rf `find . -name "*.dSYM" -print`
 
 # Check for dangerous functions

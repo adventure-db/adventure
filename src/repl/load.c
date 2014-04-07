@@ -38,13 +38,14 @@ int streamJSON(char *json)
 int load(const char *filename)
 {
 	errno = 0;
-	char *buf = fs_map_file(filename);
-	if(!buf) goto fileError;
+	struct fs_map *file = fs_map(filename);
+	char *buf = file->data;
+	if(!buf) goto error;
 	
 	int code = streamJSON(buf);
 	return code;
 
-	fileError:
-		printf("Error opening file: %s\n", strerror(errno));
-		return 1;
+error:
+	printf("Error opening file: %s\n", strerror(errno));
+	return 1;
 }

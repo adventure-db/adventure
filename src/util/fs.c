@@ -26,7 +26,7 @@ error:
 int fs_create_file(const char *path, size_t size)
 {
 	errno = 0;
-	int fd = open(path, O_CREAT | O_TRUNC | O_WRONLY, S_IRWXU);
+	int fd = open(path, O_CREAT | O_WRONLY, S_IRWXU);
 	check_debug(errno == 0, "Could not create file");
 	ftruncate(fd, size);
 	close(fd);
@@ -37,25 +37,69 @@ error:
 	return errno;
 }
 
-void *fs_map_file(const char *path)
+int fs_resize_file(const char *path, size_t size)
 {
-	struct stat sb;
 	errno = 0;
-	int fd = open(path, O_RDONLY);
-	if(errno) goto error;
-
-	fstat(fd, &sb);
-	if(!sb.st_size) goto error;
-
-	printf("Size: %llu\n", (uint64_t)sb.st_size);
-
-	void *block = mmap(NULL, sb.st_size, PROT_READ, MAP_SHARED, fd, 0);
-	check_mem(block);
+	int fd = open(path, O_WRONLY, S_IRWXU);
+	check_debug(errno == 0, "Could not create file");
+	ftruncate(fd, size);
 	close(fd);
-
-	return block;
+	return 0;
 
 error:
 	if(fd) close(fd);
+	return errno;
+}
+
+// TODO: clean this code up
+
+static int fs_map_internal(struct fs_map *file)
+{
+	struct stat sb;
+	errno = 0;
+	int fd = open(file->path, O_RDWR);
+	check(errno == 0, "Could not open file for reading");
+
+	fstat(fd, &sb);
+	check(sb.st_size, "File has no size");
+	file->size = sb.st_size;
+
+	file->data = mmap(NULL, file->size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+	check_mem(file->data);
+	close(fd);
+
+	return 0;
+
+error:
+	if(fd) close(fd);
+	return -1;
+}
+
+struct fs_map *fs_map(const char *path)
+{
+	struct fs_map *file = calloc(1, sizeof(struct fs_map));
+	file->path = sdsnew(path);
+	check(fs_map_internal(file) == 0, "Could not map file");
+	return file;
+
+error:
+	// Clean up on error
+	if(file) {
+		sdsfree(file->path);
+		free(file);
+	}
 	return NULL;
+}
+
+void fs_unmap(struct fs_map *file)
+{
+	munmap(file->data, file->size);
+	sdsfree(file->path);
+	free(file);
+}
+
+void fs_remap(struct fs_map *file)
+{
+	munmap(file->data, file->size);
+	fs_map_internal(file);
 }

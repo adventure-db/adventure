@@ -53,15 +53,6 @@ int repl_route_cmd(char *line)
 	return -1;
 }
 
-static void register_cmds()
-{
-	repl_add_cmd("create", create_db);
-	repl_add_cmd("load", load_json);
-	repl_add_cmd("status", status);
-	repl_add_cmd("stats", status);
-	repl_add_cmd("sting!", sting);
-}
-
 int repl(const char *prompt)
 {
 	cmds = trie_create();
