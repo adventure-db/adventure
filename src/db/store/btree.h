@@ -46,7 +46,7 @@ struct bt_meta
 struct bt_page
 {
 	struct store *s;
-	store_p p;
+	store_p ptr;
 	store_p meta;
 	//struct bt_hdr header;
 };
@@ -54,10 +54,10 @@ struct bt_page
 typedef uint64_t bt_key;
 typedef uint64_t bt_val;
 
-struct bt_page btree_page(struct store *s, store_p meta);
+struct bt_page btree_page(struct store *s, store_p root);
 
-store_p btree_alloc(struct store *s);
-void btree_free(struct store *s, store_p root);
+struct bt_page btree_alloc(struct store *s);
+void btree_free(struct bt_page root);
 
 store_p btree_add(struct store *s, store_p root, bt_key key, bt_val val);
 store_p btree_find(struct store *s, store_p root, bt_key key);

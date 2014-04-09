@@ -273,15 +273,17 @@ static bt_key btree_recur_add(struct store *s, store_p page, bt_key key, bt_val 
 }
 
 /* EXTERNAL API */
-store_p btree_alloc(struct store *s)
+struct bt_page btree_alloc(struct store *s)
 {
-	store_p root = store_alloc(s, BTREE_PAGE_SIZE);
-	btree_page_hdr_write(s, root, BTREE_FLAG_LEAF, 0, BTREE_HEADER_SIZE);
+	struct bt_page root;
+	root.s = s;
+	root.ptr = store_alloc(s, BTREE_PAGE_SIZE);
+	btree_page_hdr_write(s, root.ptr, BTREE_FLAG_LEAF, 0, BTREE_HEADER_SIZE);
 	return root;
 }
 
 // TODO: implement
-void btree_free(struct store *s, store_p root)
+void btree_free(struct bt_page root)
 {
 }
 
@@ -305,10 +307,10 @@ error:
 }
 
 // Add key to tree and return pointer to new root node
-store_p btree_add(struct store *s, store_p root, bt_key key, bt_val val)
+store_p btree_add(struct bt_page root, bt_key key, bt_val val)
 {
-	check(s, "store is NULL");
-	check(root, "root is not valid");
+	check(root.s, "store is NULL");
+	check(root.ptr, "root is not valid");
 
 	store_p orig = 0, split = 0;
 	bt_key mid = btree_recur_add(s, root, key, val, &orig, &split);
