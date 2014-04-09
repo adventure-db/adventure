@@ -18,11 +18,6 @@ struct store_alloc
 	store_p (*free)(struct store *, size_t);
 };
 
-struct store_txn
-{
-	uint64_t txn_id;
-};
-
 struct store
 {
 	char magic[6];
@@ -30,17 +25,19 @@ struct store
 	struct fs_map *file;
 
 	struct store_alloc alloc;
-	struct store_txn txn;
 };
 
 struct store *store_open(const char *path, int flags);
 void store_close(struct store *s);
+
 sds store_desc(struct store *s);
 void store_delete(struct store *s);
 void store_repair(struct store *s);
 
 int store_resize(struct store *s, size_t size);
 int store_extend(struct store *s);
+
+int store_sync(struct store *s);
 
 store_p store_alloc(struct store *s, size_t size);
 store_p store_realloc(struct store *s, store_p p, size_t size);
