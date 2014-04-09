@@ -34,6 +34,8 @@ valgrind:
 tests: $(TESTS)
 	sh ./tests/runtests.sh
 
+test: $(TESTS)
+
 # Clean up output
 .PHONY: clean
 clean:

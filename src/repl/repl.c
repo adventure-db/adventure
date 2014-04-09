@@ -15,7 +15,9 @@ static struct trie *cmds = NULL;
 
 void hello()
 {
-	printf("%s\n%s\n\n", "Never fear quarrels, but seek hazardous adventures.", "- Alexandre Dumas");
+	printf("%s\n%s\n\n", "Never fear quarrels, "
+						"but seek hazardous adventures.",
+						"~ Alexandre Dumas");
 }
 
 void goodbye()
@@ -53,7 +55,7 @@ int repl_route_cmd(char *line)
 	return -1;
 }
 
-int repl(const char *prompt)
+int repl(const char *prefix)
 {
 	cmds = trie_create();
 	register_cmds();
@@ -61,6 +63,8 @@ int repl(const char *prompt)
 
 	hello();
 	char *line;
+	sds prompt = sdsnew(prefix);
+
 	while( (line = linenoise(prompt)) != NULL ) {
 		if(line[0] == '\0') {
 			continue;
@@ -69,13 +73,14 @@ int repl(const char *prompt)
 		} else {
 			linenoiseHistoryAdd(line);
 			if(repl_route_cmd(line) == -1) {
-				printf(ANSI_COLOR_RED "%s is not a known command" ANSI_COLOR_RESET "\n", line);
+				printf(ANSI_COLOR_RED "Unknown command: " ANSI_COLOR_RESET "%s\n", line);
 			}
 		}
 		free(line);
 	}
 	goodbye();
 
+	sdsfree(prompt);
 	trie_destroy(cmds);
 	return 0;
 }

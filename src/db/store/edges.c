@@ -1,35 +1,35 @@
 #include "edges.h"
 
-dbf_p edges_add(struct dbf *edges, dbf_p e_old, nodeid_t start, nodeid_t end, uint64_t type)
+edge_p edges_add(struct store *edges, edge_p e_old, node_p start, node_p end)
 {
-	dbf_p e_new, size;
+	edge_p e_new, size;
 
 	if(e_old == 0) {
 		size = 8;
-		e_new = dbf_alloc(edges, size + 8);
+		e_new = store_alloc(edges, size + 8);
 	} else {
-		size = dbf_read_ui64(edges, e_old);
-		e_new = dbf_alloc(edges, size + 8);
-		dbf_copy(edges, e_new, e_old, size);
+		size = store_read_ui64(edges, e_old);
+		e_new = store_alloc(edges, size + 8);
+		store_copy(edges, e_new, e_old, size);
 	}
 
-	dbf_write_ui64(edges, e_new + size, end);
-	dbf_write_ui64(edges, e_new, size + 8);
-	dbf_free(edges, e_old);
+	store_write_ui64(edges, e_new + size, end);
+	store_write_ui64(edges, e_new, size + 8);
+	store_free(edges, e_old);
 	return e_new;
 }
 
-dbf_p edges_remove(struct dbf *edges, dbf_p e_old, nodeid_t start, nodeid_t end)
+edge_p edges_remove(struct store *edges, edge_p e_old, node_p start, node_p end)
 {
 	if(e_old == 0) return 0;
 
-	dbf_p hdr_sz = 8;
-	dbf_p item_sz = 8;
+	edge_p hdr_sz = 8;
+	edge_p item_sz = 8;
 
-	dbf_p size = dbf_read_ui64(edges, e_old);
-	dbf_p i;
+	edge_p size = store_read_ui64(edges, e_old);
+	edge_p i;
 	for(i = hdr_sz; i < size; i += item_sz) {
-		if( dbf_read_ui64(edges, e_old + i) == end ) break;
+		if( store_read_ui64(edges, e_old + i) == end ) break;
 	}
 
 	if(i >= size) return e_old;
@@ -37,11 +37,11 @@ dbf_p edges_remove(struct dbf *edges, dbf_p e_old, nodeid_t start, nodeid_t end)
 	int64_t size_new = size - item_sz;
 	if(size_new < 0) return e_old;
 
-	dbf_p e_new = dbf_alloc(edges, size_new);
-	dbf_copy(edges, e_new, e_old, i);
-	dbf_copy(edges, e_new + i, e_old + i + item_sz, size - i - item_sz);
+	edge_p e_new = store_alloc(edges, size_new);
+	store_copy(edges, e_new, e_old, i);
+	store_copy(edges, e_new + i, e_old + i + item_sz, size - i - item_sz);
 
-	dbf_write_ui64(edges, e_new, size - item_sz);
-	dbf_free(edges, e_old);
+	store_write_ui64(edges, e_new, size - item_sz);
+	store_free(edges, e_old);
 	return e_new;
 }

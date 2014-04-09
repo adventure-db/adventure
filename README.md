@@ -1,5 +1,12 @@
-A tiny quick in-memory graph database engine written in C
+A tiny fast graph database engine written in C
 
+Design goals:
+- Embeddable core
+- ACID transactions with snapshot isolation
+- Fast, lock-free reads and traversals (single writer)
+- Efficient on supernodes
+
+Components:
 - Data structures
 - Algorithms
 - Query analyzer

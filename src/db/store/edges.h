@@ -1,10 +1,22 @@
 #ifndef ADV_DB_STORE_EDGES
 #define ADV_DB_STORE_EDGES
 
-#include "dbf.h"
-#include "../db.h"
+#include "store.h"
+#include "types.h"
 
-dbf_p edges_add(struct dbf *edges, dbf_p e_old, nodeid_t start, nodeid_t end, uint64_t type);
-dbf_p edges_remove(struct dbf *edges, dbf_p e_old, nodeid_t start, nodeid_t end);
+/*	EDGE PAGE
+	header
+	edge item(s)
+
+	EDGE ITEM
+	TOTAL SIZE: 24 bytes
+	node_id (8): end node id of this edge
+	type (4): type of the edge
+	wgt (4): weight of the edge
+	kv (8): pointer to key/values of edge
+*/
+
+edge_p edges_add(struct store *edges, edge_p e_old, node_p start, node_p end);
+edge_p edges_remove(struct store *edges, edge_p e_old, node_p start, node_p end);
 
 #endif

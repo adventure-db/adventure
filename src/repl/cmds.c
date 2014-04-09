@@ -7,7 +7,7 @@
 
 #include <src/repl/load.h>
 #include <src/repl/repl.h>
-#include <src/db/db.h>
+#include <src/db/adv.h>
 
 static struct adv_db *db = NULL;
 
@@ -44,9 +44,16 @@ int open_db(char *line)
 		return 2;
 	} else {
 		db = adv_open(tok, 0);
-		if(!db) printf("Error opening database");
+		if(!db) printf("Error opening database\n");
 		return 0;
 	}
+}
+
+int close_db(char *line)
+{
+	if(db) adv_close(db);
+	else printf("No database is open.\n");
+	return 0;
 }
 
 int create_db(char *line)
@@ -58,7 +65,7 @@ int create_db(char *line)
 	} else {
 		// We have a file path
 		db = adv_open(tok, ADV_CREATE);
-		if(!db) printf("Error creating database");
+		if(!db) printf("Error creating database\n");
 		return 0;
 	}
 }
@@ -76,11 +83,11 @@ int add_edge(char *line)
 {
 	if(db) {
 		char *tok = strtok(line, " ");
-		nodeid_t start = atoi(tok);
+		node_p start = atoi(tok);
 		tok = strtok(NULL, " ");
-		nodeid_t end = atoi(tok);
+		node_p end = atoi(tok);
 
-		adv_edge_add(db, start, end, 0);
+		adv_edge_add(db, start, end);
 		return 0;
 	}
 	return -1;
@@ -90,9 +97,9 @@ int remove_edge(char *line)
 {
 	if(db) {
 		char *tok = strtok(line, " ");
-		nodeid_t start = atoi(tok);
+		node_p start = atoi(tok);
 		tok = strtok(NULL, " ");
-		nodeid_t end = atoi(tok);
+		node_p end = atoi(tok);
 
 		adv_edge_remove(db, start, end);
 		return 0;
@@ -100,27 +107,10 @@ int remove_edge(char *line)
 	return -1;
 }
 
-int stress(char *line)
-{
-	int n = 20;
-	int m = 8;
-
-	for(int i=0; i<n; i++) {
-		adv_node_add(db);
-	}
-	printf("Added %d nodes\n", n);
-
-	for(int j=0; j<m; j++) {
-		adv_edge_add(db, 1, j+2, 0);
-	}
-	printf("Added %d edges from node 1", m);
-	return 0;
-}
-
 int debug(char *line)
 {
 	if(db) adv_debug_print(db);
-	else printf("No database open. C'mon!\n");
+	else printf("No database currently open.\n");
 	return 0;
 }
 
@@ -134,9 +124,9 @@ void register_cmds()
 	// Database commands
 	repl_add_cmd("create", create_db);
 	repl_add_cmd("open", open_db);
+	repl_add_cmd("close", close_db);
 	repl_add_cmd("+n", add_node);
 	repl_add_cmd("+e", add_edge);
 	repl_add_cmd("-e", remove_edge);
-	repl_add_cmd("stress", stress);
 	repl_add_cmd("debug", debug);
 }
