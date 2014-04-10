@@ -3,8 +3,8 @@
 #include <string.h>
 #include <time.h>
 
+static struct bt_page root;
 static struct store *s = NULL;
-static store_p root = 0;
 
 char *test_open()
 {
@@ -14,17 +14,17 @@ char *test_open()
 	return NULL;
 }
 
-char *test_btree_alloc()
+char *test_btree_create()
 {
-	root = btree_alloc(s);
-	mu_assert(root != 0, "btree did not allocate root page");
+	root = btree_create(s);
+	mu_assert(root.ptr != 0, "btree did not allocate root page");
 
 	return NULL;
 }
 
 char *test_close()
 {
-	btree_free(s, root);
+	btree_destroy(root);
 	store_close(s);
 
 	return NULL;
@@ -36,9 +36,9 @@ char *all_tests()
 
 	// First create a bunch of volumes
 	mu_run_test(test_open);
-	mu_run_test(test_btree_alloc);
+	mu_run_test(test_btree_create);
 
-	btree_debug_print(s, root, BTREE_DEBUG_FULL);
+	btree_debug_print(root, BTREE_DEBUG_FULL);
 	mu_run_test(test_close);
 
 	return NULL;

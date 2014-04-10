@@ -45,3 +45,6 @@ DATA ITEM
 4 - key
 8 - value
 ----------------
+
+Adaptive allocation: append only under heavy write loads
+Multiple concurrent writers with a thread-safe allocator?

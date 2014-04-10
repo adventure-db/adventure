@@ -8,18 +8,34 @@
 
 // TODO: separate out page representation from general algorithm
 
-/*	Append-only copy-on-write btree
+/*	Copy-on-write btree
+
+	Unique points:
+	-	All inserts, updates and deletes result in a copy of the tree path
+		and a new root node.
+
+		Allocation of pages is the responsibility of the backing store.
+		This gives the backing store flexibility in determining whether to
+		do append-only writes or reclaim free space (or even be adaptive and
+		choose its strategy based on the write load)
+
+	-	Very lightweight with no stdlib memory allocation.
+		Designed for applications that could potentially have millions of trees
+		in a single file.
+
+	-	Does not handle meta pages. It is the responsibility of the user of the
+		btree to maintain a reference to the root.
+
+		Failure to maintain a reference to root would result in a leak.
 
 	PAGE LAYOUT
 	--------------------------------
 	HEADER (8)
-		flags (4): flags =
-			type (1): BTREE_FLAG_LEAF | BTREE_FLAG_BRANCH | BTREE_FLAG_META
+		flags (2): flags =
+					BTREE_FLAG_LEAF | BTREE_FLAG_BRANCH | BTREE_FLAG_META
+		page sz (2): size of this page
 		n_keys (2): number of keys held
-		used (2): used space
-
-	META PAGE (BTREE_PAGE_SIZE)
-	// TODO
+		end (2): end of the page
 
 	BRANCH PAGE (BTREE_PAGE_SIZE)
 	ptr 0 (8)
@@ -36,34 +52,37 @@
 	val n (8)
 */
 
-struct bt_meta
-{
-	uint32_t page_sz;
-	uint32_t hdr_sz;
-	uint32_t depth;
-};
+typedef uint64_t bt_key;
+typedef uint64_t bt_val;
+typedef uint16_t item_p;
 
+// TODO: make this smaller
 struct bt_page
 {
 	struct store *s;
 	store_p ptr;
-	store_p meta;
-	//struct bt_hdr header;
+	uint16_t flags;
+	uint16_t sz_page;
+	uint16_t sz_free;
+	uint16_t n_keys;
+	uint16_t start;
+	uint16_t end;
 };
 
-typedef uint64_t bt_key;
-typedef uint64_t bt_val;
+struct bt_cur
+{
+	struct bt_page page;
+	item_p index;
+};
 
+struct bt_page btree_create(struct store *s);
 struct bt_page btree_page(struct store *s, store_p root);
+void btree_destroy(struct bt_page root);
 
-struct bt_page btree_alloc(struct store *s);
-void btree_free(struct bt_page root);
+struct bt_page btree_add(struct bt_page root, bt_key key, bt_val val);
+struct bt_cur btree_find(struct bt_page root, bt_key key);
+struct bt_page btree_remove(struct bt_page root, bt_key key);
 
-store_p btree_add(struct store *s, store_p root, bt_key key, bt_val val);
-store_p btree_find(struct store *s, store_p root, bt_key key);
-store_p btree_remove(struct store *s, store_p root, bt_key key);
-
-void btree_debug_print(struct store *s, store_p root, int opts);
-int btree_audit(struct store *s, store_p root);
+void btree_debug_print(struct bt_page root, int opts);
 
 #endif
