@@ -41,14 +41,17 @@ int fs_resize_file(const char *path, size_t size)
 {
 	errno = 0;
 	int fd = open(path, O_WRONLY, S_IRWXU);
-	check_debug(errno == 0, "Could not create file");
+	check(errno == 0, "Could not create file");
 	ftruncate(fd, size);
+	check(errno == 0, "Could not resize file");
 	close(fd);
 	return 0;
 
 error:
+	debug("errno = %u, %s", errno, strerror(errno));
+	int code = errno;
 	if(fd) close(fd);
-	return errno;
+	return code;
 }
 
 // TODO: clean this code up

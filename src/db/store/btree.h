@@ -4,7 +4,8 @@
 #include <stdint.h>
 #include "store.h"
 
-#define BTREE_DEBUG_FULL	0x01
+#define BTREE_DEBUG_FULL			0x01
+#define BTREE_DEBUG_OVERVIEW		0x02
 
 // TODO: separate out page representation from general algorithm
 
@@ -54,35 +55,23 @@
 
 typedef uint64_t bt_key;
 typedef uint64_t bt_val;
+typedef uint64_t bt_header;
 typedef uint16_t item_p;
-
-// TODO: make this smaller
-struct bt_page
-{
-	struct store *s;
-	store_p ptr;
-	uint16_t flags;
-	uint16_t sz_page;
-	uint16_t sz_free;
-	uint16_t n_keys;
-	uint16_t start;
-	uint16_t end;
-};
+typedef store_p page_p;
 
 struct bt_cur
 {
-	struct bt_page page;
+	page_p page;
 	item_p index;
 };
 
-struct bt_page btree_create(struct store *s);
-struct bt_page btree_page(struct store *s, store_p root);
-void btree_destroy(struct bt_page root);
+page_p btree_create(struct store *s);
+void btree_destroy(struct store *s, page_p root);
 
-struct bt_page btree_add(struct bt_page root, bt_key key, bt_val val);
-struct bt_cur btree_find(struct bt_page root, bt_key key);
-struct bt_page btree_remove(struct bt_page root, bt_key key);
+page_p btree_add(struct store *s, page_p root, bt_key key, bt_val val);
+struct bt_cur btree_find(struct store *s, page_p root, bt_key key);
+page_p btree_remove(struct store *s, page_p root, bt_key key);
 
-void btree_debug_print(struct bt_page root, int opts);
+void btree_debug_print(struct store *s, page_p root, int opts);
 
 #endif

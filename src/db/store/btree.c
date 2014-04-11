@@ -6,374 +6,471 @@
 #define BTREE_HEADER_SIZE		8
 
 #define BTREE_ROOT 				0x01
-#define BTREE_BRANCH			0x02
-#define BTREE_LEAF				0x04
+#define BTREE_LEAF				0x02
 
-#define PG_FLAGS(page)			(page.flags)
-#define PG_SIZE(page)			(page.sz_page)
-#define PG_FREE(page)			(page.sz_free)
-#define PG_USED(page)			(page.end)
-#define PG_START(page)			(page.start)
-#define PG_END(page)			(page.end)
-#define PG_NKEYS(page)			(page.n_keys)
+// Some limits for error checking
+#define BTREE_MIN_PAGE_SIZE		48
+#define BTREE_MAX_PAGE_SIZE		65536
 
-#define IS_ROOT(page)			(page.flags & BTREE_ROOT)
-#define IS_LEAF(page)			(page.flags & BTREE_LEAF)
-#define IS_BRANCH(page)			(page.flags & BTREE_BRANCH)
+/*	Page header flags (1)
+	abcdefgh
+	h: is root?
+	g: is leaf?
+*/
+
+// TODO: right now this is causing a read every time a macro is invoked
+#define PG_HEADER(page)			(read_ui64(s, page, 0))
+
+#define PG_FLAGS(page)			((PG_HEADER(page) >> 48) & 0xFFFF)
+#define PG_SIZE(page)			((PG_HEADER(page) >> 32) & 0xFFFF)
+#define PG_NKEYS(page)			((PG_HEADER(page) >> 16) & 0xFFFF)
+#define PG_USED(page)			((PG_HEADER(page) >> 0) & 0xFFFF)
+
+#define PG_END(page)			(PG_USED(page))
+#define PG_FREE(page)			(PG_SIZE(page) - PG_USED(page))
+#define PG_START(page)			(BTREE_HEADER_SIZE)
+
+#define IS_ROOT(page)			(PG_FLAGS(page) & BTREE_ROOT)
+#define IS_LEAF(page)			(PG_FLAGS(page) & BTREE_LEAF)
+#define IS_BRANCH(page)			(!(PG_FLAGS(page) & BTREE_LEAF))
 
 // INLINE HELPERS
-static inline uint16_t read_ui16(struct bt_page page, item_p i)
+/*
+static inline uint16_t read_ui16(struct store *s, page_p page, item_p i)
 {
-	return store_read_ui16(page.s, page.ptr + i);
-}/*
+	return store_read_ui16(s, page + i);
+}
 static inline uint32_t read_ui32(struct bt_page page, item_p i)
 {
 	return store_read_ui32(page.s, page.ptr + i);
 }*/
-static inline uint64_t read_ui64(struct bt_page page, item_p i)
+static inline uint64_t read_ui64(struct store *s, page_p page, item_p i)
 {
-	return store_read_ui64(page.s, page.ptr + i);
+	return store_read_ui64(s, page + i);
 }
 
-static inline void write_ui16(struct bt_page page, item_p i, uint16_t n)
+static inline void write_ui16(struct store *s, page_p page, item_p i, uint16_t n)
 {
-	store_write_ui16(page.s, page.ptr + i, n);
+	store_write_ui16(s, page + i, n);
 }/*
 static inline void write_ui32(struct bt_page page, item_p i, uint32_t n)
 {
 	store_write_ui32(page.s, page.ptr + i, n);
 }*/
-static inline void write_ui64(struct bt_page page, item_p i, uint64_t n)
+static inline void write_ui64(struct store *s, page_p page, item_p i, uint64_t n)
 {
-	store_write_ui64(page.s, page.ptr + i, n);
+	store_write_ui64(s, page + i, n);
 }
 
-static inline void copy(struct bt_page dest, item_p di, struct bt_page src, item_p si, item_p sz)
+static inline void copy(struct store *s, page_p dest, item_p di, page_p src, item_p si, item_p sz)
 {
-	store_copy(dest.s, dest.ptr + di, src.ptr + si, sz);
+	store_copy(s, dest + di, src + si, sz);
 }
 
 // DEBUG HELPERS
-static inline void btree_debug_page(struct bt_page page)
+static inline void btree_debug_page(struct store *s, page_p page)
 {
+	uint32_t item_size = sizeof(bt_key) + sizeof(bt_val);
 	const char *prefix = IS_ROOT(page)? "root " : "";
 	const char *type = IS_LEAF(page)? "leaf" : "branch";
 
-	debug("%s%s page at %llu: size: %u, used: %u, free: %u", prefix, type, page.ptr, PG_SIZE(page), PG_USED(page), PG_FREE(page));
-	debug("\tflags: %u", PG_FLAGS(page));
-	debug("\tn_keys: %hu", PG_NKEYS(page));
-	debug("\tstart: %hu", PG_START(page));
-	debug("\tend: %hu", PG_END(page));
+	printf("%s%s page at %llu: flags: %llu, nkeys: %llu, size: %llu, used: %llu, free: %llu [%d, %llu] \n", 
+			prefix, type, page, PG_FLAGS(page), PG_NKEYS(page), PG_SIZE(page), PG_USED(page), PG_FREE(page), PG_START(page), PG_END(page));
+
+	item_p item = PG_START(page);
+	if( IS_BRANCH(page) ) {
+		// Recurse
+		page_p sub = read_ui64(s, page, item);
+		printf("\t(%llu) ", sub);
+		item += sizeof(bt_val);
+		while(item < PG_END(page)) {
+			bt_key key = read_ui64(s, page, item);
+			page_p sub = read_ui64(s, page, item + 8);
+			printf("\t%llu (%llu)", key, sub);
+			item += item_size;
+		}
+		printf("\n");
+	} else {
+		while(item < PG_END(page)) {
+			bt_key key = read_ui64(s, page, item);
+			bt_val val = read_ui64(s, page, item + 8);
+			printf("\t%llu:%llu", key, val);
+			item += item_size;
+		}
+		printf("\n");
+	}
 }
 
 // HEADER HELPERS
-static inline void btree_page_hdr_read(struct bt_page *page)
-{
-	page->flags = read_ui16(*page, 0);
-	page->sz_page = read_ui16(*page, 2);
-	page->n_keys = read_ui16(*page, 4);
-	page->end = read_ui16(*page, 6);
-	page->sz_free = page->sz_page - page->end;
-	page->start = BTREE_HEADER_SIZE;
-}
-
 static inline void
-btree_page_hdr_write(struct bt_page *page, uint32_t flags, uint16_t sz_page, uint16_t n_keys, uint16_t used)
+btree_page_hdr_write(struct store *s, page_p page, uint32_t flags, uint16_t sz_page, uint16_t n_keys, uint16_t used)
 {
-	write_ui16(*page, 0, flags);
-	write_ui16(*page, 2, sz_page);
-	write_ui16(*page, 4, n_keys);
-	write_ui16(*page, 6, used);
-	btree_page_hdr_read(page);
+	write_ui16(s, page, 0, flags);
+	write_ui16(s, page, 2, sz_page);
+	write_ui16(s, page, 4, n_keys);
+	write_ui16(s, page, 6, used);
 }
 
 // PAGE SEARCH HELPERS
 // TODO: make this a binary search
-static struct bt_page btree_page_branch_find(struct bt_page page, bt_key key)
+// Return index of child page that should contain key
+static item_p btree_branch_find(struct store *s, page_p page, bt_key key)
 {
-	uint32_t item_size = sizeof(bt_key) + sizeof(bt_val);
-	store_p item = PG_START(page);
-	bt_val val = read_ui64(page, item);
-	item += sizeof(bt_val);
-	while(item < PG_END(page)) {
-		if(key <= read_ui64(page, item)) break;
-		val = read_ui64(page, item + 8);
-		item += item_size;
+	item_p item = PG_START(page);
+	while(item < PG_END(page) - sizeof(page_p)) {
+		if(key < read_ui64(s, page, item + sizeof(page_p))) break;
+		item += sizeof(page_p) + sizeof(key);
 	}
-	return btree_page(page.s, val);
+	return item;
 }
 
 // Look for key in page and return pointer to first item <= key
 // TODO: make this a binary search
-static item_p btree_page_leaf_find(struct bt_page page, bt_key key)
+static item_p btree_leaf_find(struct store *s, page_p page, bt_key key)
 {
-	uint32_t item_size = sizeof(bt_key) + sizeof(bt_val);
-
 	item_p item = PG_START(page);
 	while(item < PG_END(page)) {
-		if(key <= read_ui64(page, item)) break;
-		item += item_size;
+		if(key < read_ui64(s, page, item)) return item;
+		item += sizeof(key) + sizeof(page_p);
 	}
 	return item;
 }
 
 // PAGE CREATION
 // Create a new root branch
-static struct bt_page btree_root_create(struct store *s, bt_key mid, struct bt_page p1, struct bt_page p2)
+static page_p btree_root_create(struct store *s, bt_key mid, page_p orig, page_p split)
 {
-	uint32_t item_size = sizeof(bt_key) + 2*sizeof(bt_val);
+	uint32_t item_size = sizeof(mid) + 2*sizeof(page_p);
 
 	//FIX: move allocation somewhere else
-	struct bt_page root;
-	root.s = s;
-	root.ptr = store_alloc(root.s, BTREE_DEF_PAGE_SIZE);
-	btree_page_hdr_write(&root, BTREE_ROOT | BTREE_BRANCH, BTREE_DEF_PAGE_SIZE, 1, BTREE_HEADER_SIZE + item_size);
+	page_p root = store_alloc(s, BTREE_DEF_PAGE_SIZE);
+	btree_page_hdr_write(s, root, BTREE_ROOT, BTREE_DEF_PAGE_SIZE, 1, BTREE_HEADER_SIZE + item_size);
 
-	write_ui64(root, PG_START(root), p1.ptr);
-	write_ui64(root, PG_START(root) + sizeof(bt_val), mid);
-	write_ui64(root, PG_START(root) + sizeof(bt_val) + sizeof(bt_key), p2.ptr);
+	write_ui64(s, root, PG_START(root), orig);
+	write_ui64(s, root, PG_START(root) + sizeof(page_p), mid);
+	write_ui64(s, root, PG_START(root) + sizeof(page_p) + sizeof(mid), split);
 	return root;
 }
 
-// Split a branch page
-static bt_key btree_page_branch_split(struct bt_page page, bt_key key, struct bt_page *p1, struct bt_page *p2)
+static inline void
+btree_branch_copy_up(struct store *s, page_p dest, page_p src, uint32_t n_keys, item_p si, item_p ei, bt_key key,
+					page_p orig, page_p split, item_p i)
 {
-	return 0;
+	uint32_t item_size = sizeof(key) + sizeof(page_p);
+
+	debug("Branch copy up");
+	debug("si: %hu, ei: %hu, i: %hu", si, ei, i);
+	debug("key: %llu, orig: %llu, split: %llu", key, orig, split);
+
+	if(i >= si && (si != PG_START(src) || i < ei)) {
+		n_keys++;
+		i -= si;
+		copy(s, dest, PG_START(src), src, si, i);
+		write_ui64(s, dest, PG_START(src) + i, orig);
+		write_ui64(s, dest, PG_START(src) + i + sizeof(key), key);
+		write_ui64(s, dest, PG_START(src) + i + sizeof(key) + sizeof(page_p), split);
+		i += sizeof(page_p);
+		copy(s, dest, PG_START(src) + i + item_size, src, si + i, ei - si - i);
+	} else {
+		copy(s, dest, PG_START(src), src, si, ei - si);
+	}
+
+	btree_page_hdr_write(s, dest, PG_FLAGS(src) & ~BTREE_ROOT, PG_SIZE(src), n_keys, n_keys*item_size + PG_START(src) + sizeof(page_p));
+
+	//btree_debug_page(s, src);
+	//btree_debug_page(s, dest);
 }
 
-static struct bt_page btree_page_branch_add(struct bt_page branch, struct bt_page sub, struct bt_page *orig, struct bt_page *split)
+// Split a branch page
+static bt_key btree_branch_split(struct store *s, page_p branch, item_p idx, bt_key key, page_p *orig, page_p *split)
 {
+	
+	uint32_t item_size = sizeof(key) + sizeof(page_p);
 
-	return branch;
+	// Allocate the new branches
+	page_p left = store_alloc(s, PG_SIZE(branch));
+	page_p right = store_alloc(s, PG_SIZE(branch));
+
+	// Find middle value (median) of original leaf
+	uint32_t n_keys_left = (PG_NKEYS(branch) / 2);
+	uint32_t n_keys_right = PG_NKEYS(branch) - n_keys_left;
+	item_p m = item_size * n_keys_left + PG_START(branch) + sizeof(page_p);
+
+	if(idx > m && idx < PG_END(branch) - sizeof(page_p)) {
+		n_keys_left++;
+		n_keys_right--;
+		m += item_size;
+	}
+
+	bt_key mid = read_ui64(s, branch, m);
+
+	debug("nleft: %u, nright: %u", n_keys_left, n_keys_right);
+	if(n_keys_right < 1) {
+
+	}
+	// Copy over data to new leaves
+	btree_branch_copy_up(s, left, branch, n_keys_left, PG_START(branch), m, key, *orig, *split, idx);
+	btree_branch_copy_up(s, right, branch, n_keys_right - 1, m + sizeof(mid), PG_END(branch), key, *orig, *split, idx);
+
+	*orig = left;
+	*split = right;
+
+	store_free(s, branch);
+	return mid;
+}
+
+// Two cases:
+//		1. 	There was room in the child node for the item
+//				=> *orig contains copy of child page and *split = 0
+//		2.	The child node had to split
+//				=> *orig and *split contain the two split pages
+//
+// If this branch doesn't have room for split pages, returns 0
+// btree_page_branch_split handles that case
+static page_p btree_branch_add(struct store *s, page_p branch, item_p idx, bt_key key, page_p *orig, page_p *split)
+{
+	uint32_t item_size = sizeof(key) + sizeof(page_p);
+	if(*split && PG_FREE(branch) < item_size) return 0;
+
+	page_p branch_copy = store_alloc(s, PG_SIZE(branch));
+	uint32_t n_keys = PG_NKEYS(branch);
+
+	int offset = 0;
+	copy(s, branch_copy, 0, branch, 0, idx);
+	write_ui64(s, branch_copy, idx, *orig);
+	if(*split) {
+		debug("Added new page to branch, mid = %llu", key);
+		write_ui64(s, branch_copy, idx + sizeof(*orig), key);
+		write_ui64(s, branch_copy, idx + sizeof(*orig) + sizeof(key), *split);
+		offset += item_size;
+		n_keys++;
+	}
+	copy(s, branch_copy, idx + sizeof(*orig) + offset, branch, idx + sizeof(*orig), PG_END(branch) - idx - sizeof(*orig));
+
+	btree_page_hdr_write(s, branch_copy, PG_FLAGS(branch), PG_SIZE(branch), n_keys, PG_USED(branch) + offset);
+
+	store_free(s, branch);
+	return branch_copy;
 }
 
 static inline void
-btree_page_copy_in(struct bt_page dest, struct bt_page src, uint32_t n_keys, item_p s, item_p e, bt_key key, bt_val val, item_p i)
+btree_leaf_copy_in(struct store *s, page_p dest, page_p src, uint32_t n_keys, item_p si, item_p ei, bt_key key, bt_val val, item_p i)
 {
-	uint32_t item_size = sizeof(bt_key) + sizeof(bt_val);
+	uint32_t item_size = sizeof(key) + sizeof(val);
 
-	if((s == 0 || i > s) && i <= e) {
+	debug("Leaf copy in");
+	debug("si: %hu, ei: %hu, i: %hu", si, ei, i);
+	debug("key: %llu, val: %llu", key, val);
+
+	if((si == PG_START(src) || i > si) && i <= ei) {
 		n_keys++;
-		i -= s;
-		copy(dest, src.start, src, src.start + s, i);
-		write_ui64(dest, src.start + i, key);
-		write_ui64(dest, src.start + i + sizeof(bt_key), val);
-		copy(dest, src.start + i + item_size, src, src.start + s + i, e - i);
+		i -= si;
+		copy(s, dest, PG_START(src), src, si, i);
+		write_ui64(s, dest, PG_START(src) + i, key);
+		write_ui64(s, dest, PG_START(src) + i + sizeof(key), val);
+		copy(s, dest, PG_START(src) + i + item_size, src, si + i, ei - si - i);
 	} else {
-		copy(dest, src.start, src, src.start + s, e - s);
+		copy(s, dest, PG_START(src), src, si, ei - si);
 	}
 
-	btree_page_hdr_write(&dest, src.flags & ~BTREE_ROOT, src.sz_page, n_keys, n_keys*item_size);
+	btree_page_hdr_write(s, dest, PG_FLAGS(src) & ~BTREE_ROOT, PG_SIZE(src), n_keys, n_keys*item_size + PG_START(src));
+
+	//btree_debug_page(s, src);
+	//btree_debug_page(s, dest);
 }
 
 // Split a leaf page, return median to copy up tree
 // TODO: remove knowledge of page structure
-static bt_key btree_page_leaf_split(struct bt_page leaf, bt_key key, bt_val val, struct bt_page *orig, struct bt_page *split)
+static bt_key btree_leaf_split(struct store *s, page_p leaf, bt_key key, bt_val val, page_p *orig, page_p *split)
 {
-	uint32_t item_size = sizeof(bt_key) + sizeof(bt_val);
-	item_p i = btree_page_leaf_find(leaf, key) - leaf.start;
+	uint32_t item_size = sizeof(key) + sizeof(val);
+	item_p i = btree_leaf_find(s, leaf, key);
 
 	// Allocate the new leaves
-	orig->ptr = store_alloc(leaf.s, BTREE_DEF_PAGE_SIZE);
-	split->ptr = store_alloc(leaf.s, BTREE_DEF_PAGE_SIZE);
+	*orig = store_alloc(s, PG_SIZE(leaf));
+	*split = store_alloc(s, PG_SIZE(leaf));
 
 	// Find middle value (median) of original leaf
-	uint32_t n_keys_orig = (leaf.n_keys / 2);
-	uint32_t n_keys_split = leaf.n_keys - n_keys_orig;
-	item_p m = item_size * n_keys_orig;
-	debug("i: %hu", i);
-	debug("m: %hu", m);
-	bt_key mid = read_ui64(leaf, leaf.start + m);
+	uint32_t n_keys_left = (PG_NKEYS(leaf) / 2);
+	uint32_t n_keys_right = PG_NKEYS(leaf) - n_keys_left;
+	item_p m = item_size * n_keys_left + PG_START(leaf);
+
+	if(i > m && i < PG_END(leaf)) {
+		n_keys_left++;
+		n_keys_right--;
+		m += item_size;
+	}
+
+	bt_key mid = read_ui64(s, leaf, m);
 
 	// Copy over data to new leaves
-	btree_page_copy_in(*orig, leaf, n_keys_orig, 0, m, key, val, i);
-	btree_page_copy_in(*split, leaf, n_keys_split, m, leaf.end - m, key, val, i);
+	btree_leaf_copy_in(s, *orig, leaf, n_keys_left, PG_START(leaf), m, key, val, i);
+	btree_leaf_copy_in(s, *split, leaf, n_keys_right, m, PG_END(leaf), key, val, i);
 
-	store_free(leaf.s, leaf.ptr);
+	store_free(s, leaf);
 	return mid;
 }
 
 // Try to add a key to the leaf page and return new page
 // If page is full, return 0
-static struct bt_page btree_page_leaf_add(struct bt_page leaf, bt_key key, bt_val val)
+static page_p btree_leaf_add(struct store *s, page_p leaf, bt_key key, bt_val val)
 {
 	uint32_t item_size = sizeof(key) + sizeof(val);
-	if(leaf.sz_free < item_size) return leaf;	// FIX: not right
+	if(PG_FREE(leaf) < item_size) return 0;
 
 	// FIX: move to method
-	struct bt_page leaf_copy;
-	leaf_copy.s = leaf.s;
-	leaf_copy.ptr = store_alloc(leaf.s, leaf.sz_page);
-	btree_page_hdr_write(&leaf_copy, leaf.flags, leaf.sz_page, leaf.n_keys+1, leaf.end + item_size);
+	page_p leaf_copy = store_alloc(s, PG_SIZE(leaf));
+	btree_page_hdr_write(s, leaf_copy, PG_FLAGS(leaf), PG_SIZE(leaf), PG_NKEYS(leaf)+1, PG_USED(leaf) + item_size);
 
-	item_p i = btree_page_leaf_find(leaf, key);
+	item_p i = btree_leaf_find(s, leaf, key);
+	debug("i: %hu, key: %llu", i, key);
 
-	// Copy over items in leaf and wedge in new item in the right spot
-	copy(leaf_copy, 0, leaf, 0, i);
-	write_ui64(leaf_copy, i, key);
-	write_ui64(leaf_copy, i + sizeof(bt_key), val);
-	copy(leaf_copy, i + item_size, leaf, i, leaf.end - i);
+	// Copy over items in leaf and wedge new item in the right spot
+	copy(s, leaf_copy, PG_START(leaf), leaf, PG_START(leaf), i - PG_START(leaf));
+	write_ui64(s, leaf_copy, i, key);
+	write_ui64(s, leaf_copy, i + sizeof(key), val);
+	copy(s, leaf_copy, i + item_size, leaf, i, PG_END(leaf) - i);
+
+	//btree_debug_page(s, leaf);
+	//btree_debug_page(s, leaf_copy);
 
 	// FIX: move to method
-	store_free(leaf.s, leaf.ptr);
+	store_free(s, leaf);
 	return leaf_copy;
 }
 
 // Recursively add an item to the tree
 // If a split occurs:
-//		orig <- new pointer to original page
-//		split <- new pointer to split page (if there is one)
-static bt_key btree_recur_add(struct bt_page page, bt_key key, bt_val val, struct bt_page *orig, struct bt_page *split)
+//		*orig <- new pointer to original page
+//		*split <- new pointer to split page (if there is one)
+//
+// On return to original caller, the new root is contained in *orig
+static bt_key btree_recur_add(struct store *s, page_p page, bt_key key, bt_val val, page_p *orig, page_p *split)
 {
-	btree_debug_page(page);
-
+	debug("KEY %llu", key);
 	if(IS_LEAF(page)) {
-		*orig = btree_page_leaf_add(page, key, val);
-		if(orig->ptr != page.ptr) return key;
+		*orig = btree_leaf_add(s, page, key, val);
+		if(*orig) return key;
 
 		debug("Need to split leaf page");
-		return btree_page_leaf_split(page, key, val, orig, split);
+		return btree_leaf_split(s, page, key, val, orig, split);
 	} else {
-		struct bt_page sub = btree_page_branch_find(page, key);
-		debug("Found branch %llu", sub.ptr);
+		item_p index = btree_branch_find(s, page, key);
+		page_p sub = read_ui64(s, page, index);
+		debug("Checking out page %llu", sub);
 
-		bt_key mid = btree_recur_add(sub, key, val, orig, split);
-		debug("mid: %llu", mid);
+		bt_key mid = btree_recur_add(s, sub, key, val, orig, split);
+		debug("*split = %llu", *split);
 
-		struct bt_page page_copy = btree_page_branch_add(page, sub, orig, split);
-		*orig = page;	//FIX
-		if(page_copy.ptr != page.ptr) return mid;
-		return btree_page_branch_split(page, mid, orig, split);
+		page_p branch_cpy = btree_branch_add(s, page, index, mid, orig, split);
+		if(branch_cpy != 0) {
+			*orig = branch_cpy;
+			*split = 0;
+			return mid;
+		}
+		return btree_branch_split(s, page, index, mid, orig, split);
 	}
 }
 
 // EXTERNAL API
 // TODO: inline this?
-struct bt_page btree_page(struct store *s, store_p p)
+page_p btree_create(struct store *s)
 {
-	struct bt_page page;
-	page.s = s;
-	page.ptr = p;
-	btree_page_hdr_read(&page);
-	return page;
-}
-
-struct bt_page btree_create(struct store *s)
-{
-	struct bt_page root;
-	root.s = s;
-	root.ptr = store_alloc(s, BTREE_DEF_PAGE_SIZE);
-	btree_page_hdr_write(&root, BTREE_LEAF | BTREE_ROOT, BTREE_DEF_PAGE_SIZE, 0, BTREE_HEADER_SIZE);
+	page_p root = store_alloc(s, BTREE_DEF_PAGE_SIZE);
+	btree_page_hdr_write(s, root, BTREE_LEAF | BTREE_ROOT, BTREE_DEF_PAGE_SIZE, 0, BTREE_HEADER_SIZE);
 	return root;
 }
 
 // TODO: implement
-void btree_destroy(struct bt_page root)
+void btree_destroy(struct store *s, page_p root)
 {
 }
 
 // Find key in tree and return a cursor to its location
-struct bt_cur btree_find(struct bt_page root, bt_key key)
+// TODO: fix
+struct bt_cur btree_find(struct store *s, page_p root, bt_key key)
 {
-	//check(root.s, "store is NULL");
-	//check(root.ptr, "root is not valid");
+	check(s, "store is NULL");
+	check(root, "root is not valid");
 
 	if(IS_BRANCH(root)) {
-		struct bt_page page = btree_page_branch_find(root, key);
-		return btree_find(page, key);
+		item_p index = btree_branch_find(s, root, key);
+		page_p sub = read_ui64(s, root, index);
+		return btree_find(s, sub, key);
 	} else {
-		struct bt_cur cur;
-		cur.page = root;
-		cur.index = btree_page_leaf_find(root, key);
-		return cur;
+		item_p index = btree_leaf_find(s, root, key);
+		return (struct bt_cur){root, index};
 	}
+
+error:
+	return (struct bt_cur){0, 0};
 }
 
 // Add key to tree and return pointer to new root node
-struct bt_page btree_add(struct bt_page root, bt_key key, bt_val val)
+page_p btree_add(struct store *s, page_p root, bt_key key, bt_val val)
 {
-	check(root.s, "store is NULL");
-	check(root.ptr, "root is not valid");
+	check(s, "store is NULL");
+	check(root, "root is not valid");
 
-	struct bt_page orig = btree_page_null(root);
-	orig.ptr = 0;
-	struct bt_page split = btree_page_null(root);
-	split.ptr = 0;
-	bt_key mid = btree_recur_add(root, key, val, &orig, &split);
+	page_p orig = 0, split = 0;
+	bt_key mid = btree_recur_add(s, root, key, val, &orig, &split);
 
-	if(split.ptr != 0) {
+	if(split != 0) {
 		debug("Root needs to make like a tree and split :[");
-		orig = btree_root_create(root.s, mid, orig, split);
-		store_free(root.s, root.ptr);
+		orig = btree_root_create(s, mid, orig, split);
+		store_free(s, root);
 	}
 	
 	return orig;
 
 error:
-	return root;
+	return 0;
 }
 
 // Print out a btree for debugging
-static void btree_debug_page_print(struct bt_page page, int n, int level, int opts)
+static void btree_debug_page_print(struct store *s, page_p page, int n, int level, int opts)
 {
-	const char *prefix = IS_ROOT(page)? "root " : "";
-	const char *type = IS_LEAF(page)? "leaf" : "branch";
-
-	printf("%s%s page %i (depth %i) at %llu: ", prefix, type, n, level, page.ptr);
-	printf("size: %u, used: %u, free: %u\n", page.sz_page, page.end, page.sz_free);
-
+	btree_debug_page(s, page);
 	uint32_t item_size = sizeof(bt_key) + sizeof(bt_val);
 
-	item_p item = page.start;
 	if( IS_BRANCH(page) ) {
 		// Recurse
-		item += sizeof(bt_val);
-		while(item < page.end) {
-			bt_key key = read_ui64(page, item);
-			printf("\t%llu", key);
-			item += item_size;
-		}
-		printf("\n");
-	} else {
-		if(opts & BTREE_DEBUG_FULL) {
-			while(item < page.end) {
-				bt_key key = read_ui64(page, item);
-				bt_val val = read_ui64(page, item + 8);
-				printf("\t%llu:%llu", key, val);
-				item += item_size;
-			}
-			printf("\n");
-		}
-	}
-
-	if( IS_BRANCH(page) ) {
-		// Recurse
-		item = page.start;
-		bt_val ptr = read_ui64(page, item);
-		btree_debug_page_print(btree_page(page.s, ptr), ++n, level+1, opts);
-		item += sizeof(bt_val);
-		while(item < page.end) {
-			ptr = read_ui64(page, item + 8);
-			btree_debug_page_print(btree_page(page.s, ptr), ++n, level+1, opts);
+		item_p item = PG_START(page);
+		page_p sub = read_ui64(s, page, item);
+		btree_debug_page_print(s, sub, ++n, level+1, opts);
+		item += sizeof(page_p);
+		while(item < PG_END(page)) {
+			sub = read_ui64(s, page, item + 8);
+			btree_debug_page_print(s, sub, ++n, level+1, opts);
 			item += item_size;
 		}
 	}
 }
 
-void btree_debug_print(struct bt_page root, int opts)
+void btree_debug_print(struct store *s, page_p root, int opts)
 {
-	// Test
-	
-	root = btree_add(root, 1, 1);
-	root = btree_add(root, 4, 1000);
-	root = btree_add(root, 5, 10);
-	root = btree_add(root, 2, 100);
-	//root = btree_add(root, 3, 10000);
+	//btree_debug_page(s, root);
+	/*
+	root = btree_add(s, root, 1, 1);
+	root = btree_add(s, root, 6, 1000);
+	root = btree_add(s, root, 8, 10);
+	root = btree_add(s, root, 2, 100);
+	root = btree_add(s, root, 3, 10000);
+	root = btree_add(s, root, 0, 12);
+	root = btree_add(s, root, 101, 12);
+	root = btree_add(s, root, 102, 12);
+	root = btree_add(s, root, 103, 12);
+	root = btree_add(s, root, 104, 12);
+	root = btree_add(s, root, 4, 12);
+	root = btree_add(s, root, 5, 12);
+	root = btree_add(s, root, 9, 12);
+	root = btree_add(s, root, 10, 12);
+	*/
 
 	// Metadata
 	printf("\n");
-	printf("btree in %s\n", store_desc(root.s));
+	printf("btree in %s\n", store_desc(s));
 
-	btree_debug_page_print(root, 0, 0, opts);
+	btree_debug_page_print(s, root, 0, 0, opts);
 	printf("\n");
 }
