@@ -33,3 +33,4 @@ bin/
 
 # Test databases
 *.db
+*.test

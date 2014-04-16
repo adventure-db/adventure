@@ -10,7 +10,7 @@ static int n = 10;
 
 char *test_open()
 {
-	s = store_open("testbtree", STORE_O_CREAT);
+	s = store_open("btree.test", STORE_O_CREAT);
 	mu_assert(s != NULL, "File should not be NULL");
 
 	return NULL;
