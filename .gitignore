@@ -30,3 +30,6 @@ tools
 
 # Ignore generated binaries
 bin/
+
+# Test databases
+*.db

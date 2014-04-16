@@ -32,9 +32,10 @@ char *test_close()
 	return NULL;
 }
 
+// Insert with duplicates
 char *test_insert_dup()
 {
-	for(int i=0; i<n; i++) {
+	for (int i=0; i<n; i++) {
 		int item = 1;
 		root = btree_add(s, root, item, i);
 	}
@@ -42,38 +43,19 @@ char *test_insert_dup()
 	return NULL;
 }
 
+// Simple query
 char *test_query_basic()
 {
 	return NULL;
 }
 
-char *test_perf_query_rand()
-{
-	srand(time(NULL));
-
-	clock_t start = clock(), diff;
-	struct bt_cur cur;
-	for(int i=0; i<n; i++) {
-		int item = rand();
-		cur = btree_find(s, root, item);
-	}
-	diff = clock() - start;
-	int msec = diff * 1000 / CLOCKS_PER_SEC;
-	double ops = n * 1000;
-	ops /= msec;
-	printf("Time to query %u items: %u ms\n", n, msec);
-	printf("Time per operation: %u us\n", (1000*msec)/n);
-	printf("Operations per second: %f\n", ops);
-
-	return NULL;
-}
-
+// Perform timed batch insertions in random order
 char *test_perf_insert_rand()
 {
 	srand(time(NULL));
 
 	clock_t start = clock(), diff;
-	for(int i=0; i<n; i++) {
+	for (int i=0; i<n; i++) {
 		int item = rand();
 		root = btree_add(s, root, item, item);
 	}
@@ -82,6 +64,28 @@ char *test_perf_insert_rand()
 	double ops = n * 1000;
 	ops /= msec;
 	printf("Time to insert %u items: %u ms\n", n, msec);
+	printf("Time per operation: %u us\n", (1000*msec)/n);
+	printf("Operations per second: %f\n", ops);
+
+	return NULL;
+}
+
+// Perform timed batch queries in random order
+char *test_perf_query_rand()
+{
+	srand(time(NULL));
+
+	clock_t start = clock(), diff;
+	struct bt_cur cur;
+	for (int i=0; i<n; i++) {
+		int item = rand();
+		cur = btree_find(s, root, item);
+	}
+	diff = clock() - start;
+	int msec = diff * 1000 / CLOCKS_PER_SEC;
+	double ops = n * 1000;
+	ops /= msec;
+	printf("Time to query %u items: %u ms\n", n, msec);
 	printf("Time per operation: %u us\n", (1000*msec)/n);
 	printf("Operations per second: %f\n", ops);
 

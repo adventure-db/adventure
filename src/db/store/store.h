@@ -14,7 +14,6 @@ struct store;
 struct store_alloc
 {
 	store_p (*alloc)(struct store *, size_t);
-	store_p (*realloc)(struct store *, size_t);
 	store_p (*free)(struct store *, size_t);
 };
 
@@ -40,7 +39,6 @@ int store_extend(struct store *s);
 int store_sync(struct store *s);
 
 store_p store_alloc(struct store *s, size_t size);
-store_p store_realloc(struct store *s, store_p p, size_t size);
 void store_free(struct store *s, store_p p);
 
 void store_write(struct store *s, store_p p, void *data, size_t size);

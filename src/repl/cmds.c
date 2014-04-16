@@ -11,7 +11,7 @@
 
 static struct adv_db *db = NULL;
 
-int load_json(char *line)
+static int load_json(char *line)
 {
 	char *tok = strtok(line, " ");
 	if(!tok) {
@@ -24,19 +24,19 @@ int load_json(char *line)
 	}
 }
 
-int status(char *line)
+static int status(char *line)
 {
 	printf("%s %s\n", SUCCESS_COLOR "Connected.", SUCCESS_COLOR "Ready." ANSI_COLOR_RESET);
 	return 0;
 }
 
-int sting(char *line)
+static int sting(char *line)
 {
 	printf("%s\n", ANSI_COLOR_RED "Ouch." ANSI_COLOR_RESET);
 	return 0;
 }
 
-int open_db(char *line)
+static int open_db(char *line)
 {
 	char *tok = strtok(line, " ");
 	if(!tok) {
@@ -49,14 +49,14 @@ int open_db(char *line)
 	}
 }
 
-int close_db(char *line)
+static int close_db(char *line)
 {
 	if(db) adv_close(db);
 	else printf("No database is open.\n");
 	return 0;
 }
 
-int create_db(char *line)
+static int create_db(char *line)
 {
 	char *tok = strtok(line, " ");
 	if(!tok) {
@@ -70,7 +70,7 @@ int create_db(char *line)
 	}
 }
 
-int add_node(char *line)
+static int add_node(char *line)
 {
 	if(db) {
 		adv_node_add(db);
@@ -79,7 +79,7 @@ int add_node(char *line)
 	return -1;
 }
 
-int add_edge(char *line)
+static int add_edge(char *line)
 {
 	if(db) {
 		char *tok = strtok(line, " ");
@@ -93,7 +93,7 @@ int add_edge(char *line)
 	return -1;
 }
 
-int remove_edge(char *line)
+static int remove_edge(char *line)
 {
 	if(db) {
 		char *tok = strtok(line, " ");
@@ -107,7 +107,7 @@ int remove_edge(char *line)
 	return -1;
 }
 
-int debug(char *line)
+static int debug(char *line)
 {
 	if(db) adv_debug_print(db);
 	else printf("No database currently open.\n");

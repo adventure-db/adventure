@@ -67,7 +67,8 @@ static int fs_map_internal(struct fs_map *file)
 	check(sb.st_size, "File has no size");
 	file->size = sb.st_size;
 
-	file->data = mmap(NULL, file->size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+	int flags = PROT_READ | PROT_WRITE;
+	file->data = mmap(NULL, file->size, flags, MAP_SHARED, fd, 0);
 	check_mem(file->data);
 	close(fd);
 

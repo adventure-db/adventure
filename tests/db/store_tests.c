@@ -82,7 +82,6 @@ char *all_tests()
 {
 	mu_suite_start();
 
-	// First create a bunch of volumes
 	mu_run_test(test_open);
 	mu_run_test(test_read_write);
 	mu_run_test(test_alloc);

@@ -27,13 +27,11 @@
 	-	Does not handle meta pages. It is the responsibility of the user of the
 		btree to maintain a reference to the root.
 
-		Failure to maintain a reference to root would result in a leak.
-
 	PAGE LAYOUT
 	--------------------------------
 	HEADER (8)
 		flags (2): flags =
-					BTREE_FLAG_LEAF | BTREE_FLAG_BRANCH | BTREE_FLAG_META
+					BTREE_LEAF | BTREE_BRANCH
 		page sz (2): size of this page
 		n_keys (2): number of keys held
 		end (2): end of the page
@@ -59,6 +57,7 @@ typedef uint64_t bt_header;
 typedef uint16_t item_p;
 typedef store_p page_p;
 
+// Cursor to a specific item
 struct bt_cur
 {
 	page_p page;

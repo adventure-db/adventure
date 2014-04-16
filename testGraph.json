@@ -1,2 +1,0 @@
-nodes: [ a, b, c ],
-edges: [ [a,b], [b,c] ]

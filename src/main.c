@@ -9,10 +9,10 @@ int main(int argc, char *argv[]) {
 	char *programName = argv[0];
 
 	// Parse command line options
-	while(argc > 1) {
+	while (argc > 1) {
 		argc--, argv++;
-		if( !strcmp(*argv, "-help") ) {
-			printf("Help yourself.\n");
+		if (!strcmp(*argv, "-help")) {
+			printf("Fear not, help is coming soon.\n");
 			return 0;
 		} else {
 			fprintf(stderr, "adventure, a scrappy graph database.\n\n");

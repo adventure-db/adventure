@@ -21,7 +21,7 @@ static hash_t default_hash(const void *a)
 	hash_t hash = 0;
 	hash_t i = 0;
 
-	for(hash = i = 0; i < len; ++i)
+	for (hash = i = 0; i < len; ++i)
 	{
 		hash += key[i];
 		hash += (hash << 10);
@@ -53,11 +53,11 @@ error:
 
 void hmap_destroy(struct hashmap *map)
 {
-	if(map) {
-		if(map->buckets) {
-			for(int i=0; i<map->size; i++) {
+	if (map) {
+		if (map->buckets) {
+			for (int i=0; i<map->size; i++) {
 				struct list *bucket = map->buckets[i];
-				if(bucket) {
+				if (bucket) {
 					list_clear(bucket);
 					list_destroy(bucket);
 				}
@@ -70,13 +70,13 @@ void hmap_destroy(struct hashmap *map)
 
 static void hmap_rehash(struct hashmap *in, struct hashmap *out)
 {
-	for(int i=0; i<in->size; i++) {
+	for (int i=0; i<in->size; i++) {
 		struct list *bucket = in->buckets[i];
-		if(bucket) {
+		if (bucket) {
 			struct listelem *cur;
-			for(cur = bucket->first; cur != NULL; cur = cur->next) {
+			for (cur = bucket->first; cur != NULL; cur = cur->next) {
 				struct hashentry *entry = (struct hashentry *) cur->val;
-				if(entry) hmap_insert(out, entry->key, entry->val);
+				if (entry) hmap_insert(out, entry->key, entry->val);
 			}
 		}
 	}
@@ -124,9 +124,9 @@ static struct listelem *hmap_get_entry(struct list *bucket, void *key, hash_t ha
 
 	struct listelem *cur;
 	struct hashentry *entry;
-	for(cur = bucket->first; cur != NULL; cur = cur->next) {
+	for (cur = bucket->first; cur != NULL; cur = cur->next) {
 		entry = (struct hashentry *) cur->val;
-		if(entry && entry->hash == hash && compare(entry->key, key) == 0) {
+		if (entry && entry->hash == hash && compare(entry->key, key) == 0) {
 			return cur;
 		}
 	}
@@ -138,7 +138,7 @@ error:
 static struct list *hmap_get_bucket(struct hashmap *map, void *key, hash_t index)
 {
 	struct list *bucket = map->buckets[index];
-	if(!bucket) {
+	if (!bucket) {
 		bucket = list_create();
 		check(bucket, "Could not create new bucket");
 		map->buckets[index] = bucket;
@@ -187,7 +187,7 @@ bool hmap_contains(struct hashmap *map, void *key)
 {
 	hash_t hash = map->hash(key);
 	struct list *bucket = map->buckets[ hash % map->size ];
-	if(!bucket) return false;
+	if (!bucket) return false;
 
 	struct listelem *elem = hmap_get_entry(bucket, key, hash, map->compare);
 	return elem != NULL;
@@ -203,7 +203,7 @@ void hmap_set(struct hashmap *map, void *key, void *val)
 	struct listelem *elem = hmap_get_entry(bucket, key, hash, map->compare);
 	struct hashentry *entry;
 
-	if(elem) {
+	if (elem) {
 		entry = (struct hashentry *) elem->val;
 		check(entry, "Could not find or create a new hashmap entry");
 		entry->val = val;
@@ -221,10 +221,10 @@ void *hmap_get(struct hashmap *map, void *key)
 {
 	hash_t hash = map->hash(key);
 	struct list *bucket = map->buckets[ hash % map->size ];
-	if(!bucket) return NULL;
+	if (!bucket) return NULL;
 
 	struct listelem *elem = hmap_get_entry(bucket, key, hash, map->compare);
-	if(!elem) return NULL;
+	if (!elem) return NULL;
 
 	struct hashentry *entry = (struct hashentry *) elem->val;
 	return entry->val;
