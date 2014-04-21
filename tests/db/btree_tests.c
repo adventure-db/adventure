@@ -6,7 +6,12 @@
 static struct store *s = NULL;
 static page_p root;
 
-static int n = 10;
+/*
+	Big TODOs:
+	1. Duplicates
+	2. Variable length keys (+values)
+	3. Removals
+*/
 
 char *test_open()
 {
@@ -26,8 +31,18 @@ char *test_btree_create()
 
 char *test_close()
 {
-	btree_destroy(s, root);
+	//btree_destroy(s, root);
 	store_close(s);
+
+	return NULL;
+}
+
+// Insert sequential keys
+char *test_insert_seq()
+{
+	for (int i=0; i<10; i++) {
+		root = btree_add(s, root, i, i);
+	}
 
 	return NULL;
 }
@@ -35,7 +50,7 @@ char *test_close()
 // Insert with duplicates
 char *test_insert_dup()
 {
-	for (int i=0; i<n; i++) {
+	for (int i=0; i<20; i++) {
 		int item = 1;
 		root = btree_add(s, root, item, i);
 	}
@@ -49,49 +64,6 @@ char *test_query_basic()
 	return NULL;
 }
 
-// Perform timed batch insertions in random order
-char *test_perf_insert_rand()
-{
-	srand(time(NULL));
-
-	clock_t start = clock(), diff;
-	for (int i=0; i<n; i++) {
-		int item = rand();
-		root = btree_add(s, root, item, item);
-	}
-	diff = clock() - start;
-	int msec = diff * 1000 / CLOCKS_PER_SEC;
-	double ops = n * 1000;
-	ops /= msec;
-	printf("Time to insert %u items: %u ms\n", n, msec);
-	printf("Time per operation: %u us\n", (1000*msec)/n);
-	printf("Operations per second: %f\n", ops);
-
-	return NULL;
-}
-
-// Perform timed batch queries in random order
-char *test_perf_query_rand()
-{
-	srand(time(NULL));
-
-	clock_t start = clock(), diff;
-	struct bt_cur cur;
-	for (int i=0; i<n; i++) {
-		int item = rand();
-		cur = btree_find(s, root, item);
-	}
-	diff = clock() - start;
-	int msec = diff * 1000 / CLOCKS_PER_SEC;
-	double ops = n * 1000;
-	ops /= msec;
-	printf("Time to query %u items: %u ms\n", n, msec);
-	printf("Time per operation: %u us\n", (1000*msec)/n);
-	printf("Operations per second: %f\n", ops);
-
-	return NULL;
-}
-
 char *all_tests()
 {
 	mu_suite_start();
@@ -100,12 +72,9 @@ char *all_tests()
 	mu_run_test(test_open);
 	mu_run_test(test_btree_create);
 
-	// Performance tests
-	//mu_run_test(test_perf_insert_rand);
-	//mu_run_test(test_perf_query_rand);
-
 	// Basic tests
-	mu_run_test(test_insert_dup);
+	mu_run_test(test_insert_seq);
+	//mu_run_test(test_insert_dup);
 	mu_run_test(test_query_basic);
 	
 	btree_debug_print(s, root, BTREE_DEBUG_FULL);

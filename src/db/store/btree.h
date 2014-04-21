@@ -8,10 +8,13 @@
 #define BTREE_DEBUG_OVERVIEW		0x02
 
 // TODO: separate out page representation from general algorithm
+// TODO: optimization: use minimal space for first page
 
 /*	Copy-on-write btree
 
-	Unique points:
+	Features:
+	-	Simple. Does not support variable-length keys or values.
+
 	-	All inserts, updates and deletes result in a copy of the tree path
 		and a new root node.
 
@@ -27,14 +30,20 @@
 	-	Does not handle meta pages. It is the responsibility of the user of the
 		btree to maintain a reference to the root.
 
+	Uses in adventure:
+	-	Indices on key/values
+
 	PAGE LAYOUT
 	--------------------------------
 	HEADER (8)
-		flags (2): flags =
+		MSB
+		flags (1): flags =
 					BTREE_LEAF | BTREE_BRANCH
+		unused (1)
 		page sz (2): size of this page
 		n_keys (2): number of keys held
-		end (2): end of the page
+		used (2): used space
+		LSB
 
 	BRANCH PAGE (BTREE_PAGE_SIZE)
 	ptr 0 (8)
@@ -54,8 +63,19 @@
 typedef uint64_t bt_key;
 typedef uint64_t bt_val;
 typedef uint64_t bt_header;
-typedef uint16_t item_p;
-typedef store_p page_p;
+
+/*
+struct btree
+{
+	struct store * s;
+	item_p (*branch_find)(struct btree *, page_p, bt_key, int);
+	item_p (*leaf_find)(struct btree *, page_p, bt_key, int);
+	void *(*item_read)(struct btree *, page_p, item_p);
+	void (*item_write)(struct btree *, page_p, item_p, bt_val);
+};
+*/
+
+#define BTREE_CUR_STACK_DEPTH	32
 
 // Cursor to a specific item
 struct bt_cur

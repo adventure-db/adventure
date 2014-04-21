@@ -11,6 +11,8 @@ int fs_create_dir(const char *path);
 int fs_create_file(const char *path, size_t size);
 int fs_resize_file(const char *path, size_t size);
 
+int fs_exists(const char *path);
+
 // Memory-mapped I/O
 struct fs_map
 {

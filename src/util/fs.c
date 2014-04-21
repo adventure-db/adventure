@@ -23,6 +23,12 @@ error:
 	return errno;
 }
 
+int fs_exists(const char *path) {
+    struct stat st;
+    int rc = stat(path, &st);
+    return rc == 0;
+}
+
 int fs_create_file(const char *path, size_t size)
 {
 	errno = 0;

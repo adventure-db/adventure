@@ -15,7 +15,7 @@ int main(int argc, char *argv[]) {
 			printf("Fear not, help is coming soon.\n");
 			return 0;
 		} else {
-			fprintf(stderr, "adventure, a scrappy graph database.\n\n");
+			fprintf(stderr, "adventure, a tiny graph database.\n\n");
 			fprintf(stderr, "Usage: %s [-help]\n", programName);
 			return 1;
 		}

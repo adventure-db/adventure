@@ -18,7 +18,7 @@ TEST_SRC = $(wildcard tests/**/*_tests.c tests/*_tests.c)
 TESTS = $(patsubst %.c, %, $(TEST_SRC))
 
 # Compiler flags
-CFLAGS = -Wall -Werror -g -v $(HEADERS_DIRS) $(SOURCES)
+CFLAGS = -Wall -Werror -O2 -g -v $(HEADERS_DIRS) $(SOURCES) $(CARG)
 LDFLAGS = $(LIBRARIES)
 
 default:

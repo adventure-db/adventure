@@ -107,7 +107,7 @@ static int remove_edge(char *line)
 	return -1;
 }
 
-static int debug(char *line)
+static int debug_print(char *line)
 {
 	if(db) adv_debug_print(db);
 	else printf("No database currently open.\n");
@@ -128,5 +128,5 @@ void register_cmds()
 	repl_add_cmd("+n", add_node);
 	repl_add_cmd("+e", add_edge);
 	repl_add_cmd("-e", remove_edge);
-	repl_add_cmd("debug", debug);
+	repl_add_cmd("debug", debug_print);
 }
