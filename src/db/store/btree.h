@@ -2,7 +2,9 @@
 #define ADV_DB_STORE_BTREE_H
 
 #include <stdint.h>
+#include <stdbool.h>
 #include "store.h"
+#include "cursor.h"
 
 #define BTREE_DEBUG_FULL			0x01
 #define BTREE_DEBUG_OVERVIEW		0x02
@@ -75,22 +77,28 @@ struct btree
 };
 */
 
-#define BTREE_CUR_STACK_DEPTH	32
-
-// Cursor to a specific item
-struct bt_cur
-{
-	page_p page;
-	item_p index;
-};
-
 page_p btree_create(struct store *s);
 void btree_destroy(struct store *s, page_p root);
 
 page_p btree_add(struct store *s, page_p root, bt_key key, bt_val val);
-struct bt_cur btree_find(struct store *s, page_p root, bt_key key);
+struct cursor btree_find(struct store *s, page_p root, bt_key key);
 page_p btree_remove(struct store *s, page_p root, bt_key key);
 
-void btree_debug_print(struct store *s, page_p root, int opts);
+// Predicates
+bool btree_is_empty(struct store *s, page_p page);
+
+// Cursor operations
+struct cursor btree_cursor(struct store *s, page_p root);
+
+void btree_cursor_add(struct cursor *cur, bt_key key, bt_val val);
+void btree_cursor_find(struct cursor *cur, bt_key key);
+
+void btree_cursor_first(struct store *s, page_p page, struct cursor *cur);
+int btree_cursor_next(struct store *s, struct cursor *cur);
+void btree_cursor_last(struct store *s, page_p page, struct cursor *cur);
+
+// Debugging
+void btree_cursor_debug(struct cursor *cur);
+void btree_debug(struct store *s, page_p root, int opts);
 
 #endif

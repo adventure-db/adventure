@@ -21,8 +21,8 @@ static void store_read_hdr(struct store *s)
 	s->end = store_read_ui64(s, p+6);
 
 	debug("Header:");
-	debug("\tMagic: %s", s->magic);
-	debug("\tEnd: %llu", s->end);
+	debug("Magic: %s", s->magic);
+	debug("End: %llu", s->end);
 }
 
 // Open/close file
@@ -105,7 +105,7 @@ int store_extend(struct store *s)
 // Page allocation
 page_p store_alloc(struct store *s, size_t size)
 {
-	size_t free_space = s->file->size - s->end;
+	store_p free_space = s->file->size - s->end;
 
 	// No free space, try to extend the file
 	if (size > free_space) {
@@ -115,9 +115,10 @@ page_p store_alloc(struct store *s, size_t size)
 
 	// No free pages available, return a new one from the end
 	if (!s->free_list || !list_count(s->free_list)) {
-		size_t end = s->end;
+		page_p end = s->end;
 		s->end += size;
 		store_write_ui64(s, 6, s->end);
+		debug("alloc: new page *%llu", end);
 		return end;
 	}
 
@@ -152,7 +153,7 @@ page_p store_alloc(struct store *s, size_t size)
 	}
 
 	// No free pages available, return a new one from the end
-	if (!list_count(s->free_list)) {
+	if (!s->free_list || !list_count(s->free_list)) {
 		size_t end = s->end;
 		s->end += size;
 		store_write_ui64(s, 6, s->end);

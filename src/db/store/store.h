@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
+#include <limits.h>
 
 #include <lib/sds/sds.h>
 #include <src/util/dbg.h>
@@ -22,6 +23,8 @@
 */
 
 #define STORE_O_CREAT	0x1
+
+#define ITEM_MAX		USHRT_MAX
 
 typedef uint64_t store_p;
 typedef uint16_t item_p;

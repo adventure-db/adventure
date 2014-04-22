@@ -67,7 +67,7 @@ char *test_perf_query_rand()
 	srand(time(NULL));
 
 	clock_t start = clock(), diff;
-	struct bt_cur cur;
+	struct cursor cur;
 	for (int i=0; i<n; i++) {
 		int item = rand();
 		cur = btree_find(s, root, item);

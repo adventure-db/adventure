@@ -58,9 +58,40 @@ char *test_insert_dup()
 	return NULL;
 }
 
+// Simple cursor test
+char *test_cur_basic()
+{
+	struct cursor cur;
+	btree_cursor_first(s, root, &cur);
+	printf("\nFirst cursor:\n");
+	cursor_debug(&cur);
+
+	btree_cursor_next(s, &cur);
+	printf("\nNext cursor:\n");
+	cursor_debug(&cur);
+
+	btree_cursor_last(s, root, &cur);
+	printf("\nLast cursor:\n");
+	cursor_debug(&cur);
+
+	btree_cursor_next(s, &cur);
+	printf("\nNext cursor:\n");
+	cursor_debug(&cur);
+
+	return NULL;
+}
+
 // Simple query
 char *test_query_basic()
 {
+	struct cursor cur = btree_cursor(s, root);
+	btree_cursor_find(&cur, 3);
+	cursor_debug(&cur);
+
+	btree_cursor_next(s, &cur);
+	printf("\nNext cursor:\n");
+	cursor_debug(&cur);
+
 	return NULL;
 }
 
@@ -74,10 +105,14 @@ char *all_tests()
 
 	// Basic tests
 	mu_run_test(test_insert_seq);
+	mu_run_test(test_cur_basic);
+
 	//mu_run_test(test_insert_dup);
 	mu_run_test(test_query_basic);
 	
-	btree_debug_print(s, root, BTREE_DEBUG_FULL);
+	printf("\n");
+	btree_debug(s, root, BTREE_DEBUG_FULL);
+	printf("\n");
 	
 	mu_run_test(test_close);
 
